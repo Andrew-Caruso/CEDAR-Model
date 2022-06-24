@@ -1,0 +1,48 @@
+list of formulae and constants from the readings 
+
+"beam-detectorNA62" pg 2 eq 1.1 
+	(m_miss)^2 = (P_k - P_pi)^2  
+P = 4-momentum of kaon or pion 
+
+"beam-detectorNA62" pg 2 eq 1.1 
+75 GeV / c secondary kaon beam pg 3 
+
+"CERN-82-13" pg 2 eq 1 
+	cos(theta) = 1/ (n * beta )
+cherenkov angle = theta
+index of refraction = n
+beta = v/c, velocity of the particle 
+
+"CERN-82-13" pg 3 eq 2 
+	equation for beta in terms of mass and momentu
+	in natural units hbar = h/pi = 1 & c = 1
+
+"CERN-82-13" pg 3 eq 3 
+	delta p / p ~ 1%
+	delta m / m >= 100% 
+	formula for delta beta / beta 
+
+"CERN-82-13" pg 3 eq 4 
+	delta theta 
+
+"CERN-82-13" pg 4 
+	delta R
+where delta denotes difference and f is focal length 
+
+"CERN-82-13" pg 4-6
+	formulae regarding the effects that cause broadening (widening of the light spot of CEDAR) 
+
+"CERN-82-13" pg 6 eq 12 
+	number of photons of cherenkov light 
+
+"CERN-82-13" pg 7 
+	resolution formulae 
+	see page 7 table 1 for parameters
+
+"CERN-82-13" pg 8 eq 16
+	efficiency of a given PM 
+	confidence levels if multiple detectors with same efficiency 
+
+"CERN-82-13" pg 12 table 2
+	optical parameters list
+

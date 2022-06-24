@@ -1,0 +1,278 @@
+notes from the readings (excluding constants and formulae)
+
+
+
+
+	from "beam-detectorNA62"
+
+
+
+rare decay of interest 
++kaon -> +pion + neutrino pair 
+
+goal of NA62:
+match the 10% theory precision for the rare decay rate 
+
+other apparatuses in NA62:
+to control the beam (alignment, divergence)
+measure the beam 
+reject photons
+reject muons 
+measuring trajectories
+measuring momenta
+measuring energies 
+detecting scattering 
+collimators
+calorimeters 
+ID particles 
+
+the T10 target (at the beginning of the experiment is hit by a primary proton beam from SPS accelerator at 400 GeV (momentum): 400 mm long 2mm diameter beryllium 
+
+the outgoing beam from the proton beam with the stationary T10 target is the secondary hadron beam K12 at 75 GeV (momentum)  
+
+6% of the k12 beam are kaons 
+
+rare decay of interest 
++kaon -> +pion + neutrino pair 
++kaon = u + s-bar 
++pion = u + d-bar 
+
+goal of NA62:
+match the 10% theory precision for the rare decay rate 
+
+other apparatuses in NA62:
+to control the beam (alignment, divergence)
+measure the beam 
+reject photons
+reject muons 
+measuring trajectories
+measuring momenta
+measuring energies 
+detecting scattering 
+reflecting 
+collimating (narrowing) 
+
+the T10 target (at the beginning of the experiment is hit by a primary proton beam from SPS accelerator at 400 GeV (momentum): 400 mm long 2mm diameter beryllium 
+
+the outgoing beam from the proton beam with the stationary T10 target is the secondary hadron beam K12 at 75 GeV (momentum)  
+
+75% of kaons do not decay before hitting the beam dump (lead surrounded by concrete to absorb the beam at the very end) 
+
+in order to keep probability > 99% requires:
+time interval (or time resolution) = 100 - 150 ps 
+between incoming kaon and outgoing charge particles
+
+using decay-in-flight technique:
+booster the products of the decay to high velocities
+thus high momenta, relativistic particles
+and observe they as they travel downstream 
+
+CEDAR = differential cherenkov counter with achromatic ring focusing (counts the number of cherekov radiation from charged particles moving v>c in the gas medium
+
+NA62 configs:
+CEDAR gas volume: 0.94 m^3 
+N2 gas at room temp and at 1.75 bar
+H2 gas at 3.9 bar 
+originally CEDAR was filled with N2 gas 
+these parameters are selected to optimize the time resolution  
+75% of kaons do not decay before hitting the beam dump (lead surrounded by concrete to absorb the beam at the very end) 
+
+in order to keep probability > 99% requires:
+time interval (or time resolution) = 100 - 150 ps 
+between incoming kaon and outgoing charge particles
+
+using decay-in-flight technique:
+booster the products of the decay to high velocities
+thus high momenta, relativistic particles
+and observe they as they travel downstream 
+
+two apparatuses of interest: CEDAR and KTAG
+kaons are identified by KTAG (detector with 8 photodetectors)
+kaons discriminated from pions and protons via CEDAR (counter) 
+
+NA62 configs:
+CEDAR gas volume: 0.94 m^3 
+N2 gas at room temp and at 1.75 bar
+H2 gas at 3.9 bar 
+originally CEDAR was filled with N2 gas 
+these parameters are selected to optimize the time resolution  
+gas kept at room temp
+pressure: ~0 to 5 bar 
+angular beam divergence < 100 mu-rad in each plane 
+
+using H2 gas in lieu of N2 gas decreases the beam emmittance (xsi_0 or beam width) by ~9% in each plane 
+
+PM = photomultiplier 
+
+Regarding CEDAR and KTAG:
+beam focused (after traversing through CEDAR) into 8 exit windows and focused onto 8 spherical mirrors which reflect radially out into 8 sectors (aka light boxes) in insulated, cooled, faraday enclosed N2 gas
+each light box is a wave guide with 64 conical sections. Inside each cone is 48 PM, but 16 peripheral cones in each sector are not used.
+
+from the 2015 experiment using N2 gas: 
+clear separation of +pion, proton, and +kaon peaks if confidence of signals >= 5 sectors
+at 1.75 bar is optimized for +k ID with <num of PM signals / +k> = 20  
+KTAG time resolution for individual PM signals = |hit time in PM - <time of all signals produced>|
+rms time resoltuion = 300 ps
+time resolution (assuming <num of Pm signals / +k> = 20) = 70 ps 
+KTAG efficiency > 98%
+KTAG misidentification ~ 10E-4 
+
+
+
+
+	from "chapter_cedar"
+
+
+
+
+see page 2 for list of CEDAR parameters
+
+Cerenkov angle (given a beam momentum and pressure) is a function of mass of particle and wavelengthof cerenkov radiation 
+
+West CEDAR currently using H2 gas
+if used N2 gas in lieu at room temp willreduce beam scattering and minimize cerenkov dispersion, such that light from -k or +k (excluding neutral k) will pass through but pi and h cerenkov light will not
+
+ring shaped diaphram radius = 100 mmdiaphram ~ slit 
+
+causes of broadening (widening) of the light spot at the diaphram:
+1. optical aberrations
+2. chromatic dispersion
+3. scattering of the beam (N-fold)
+4.inhomogenous (not same for all points)) refraction index of gas due to temp grad
+5. beam divergence 
+6. noise and "halo" particles contributing to scintillation light production 
+
+west CEDAR is represented by CEDAR 
+
+CEDAR detector needs:
+1. time resolution = 100 ps
+2. kaon tagging efficiency >= 95%
+BUT the PMs are not fast enough, thus need KTAG (photomultipliers). 
+
+CEDAR to see full proton peak need pressure = 5 bar 
+
+intrinsic rate due to kaons of the beam ~ 50 Mhz 
+~100 photos avg per kaon at the window (already accounting for losses)  
+
+light from kaons passes through diaphram and quartz window and produce lights spots via photodetectors. 8 sectors
+
+100 photons per kaon distributed among the 8 sectors 
+
+
+
+	from "ktag_NA62" 
+
+
+
+counter = counts the number of events of something
+detector = identifies or finds the charateristics of something 
+KTAG = detector
+CEDAR = counter 
+
+KTAG avg rate of identifying charge kaons: 50 - 750 MHz 
+
+NA62 requirements:
+1. time resolution >= 100 ps
+2. effifiency > 95% 
+3. contamination of kaon sample < 10E-4 
+
+KTAG was based off of CEDAR 
+
+KTAG detector identifies charge kaons and rejects other particles
+CEDAR counter simply discriminates between protons, pions, and kaons of the unseparated beam  
+
+because CEDAR's PMs and electronics were not sufficient for the beam (to meet requirements) needed new electronics and PMs, thus KTAG 
+
+CEDAR long tube length ~ 7 m 
+currenlty using N2 gas 
+
+CEDAR has a spherical mirror, chromatic corrector, lenses, and diaphram (ring-like slit) and ultimately delivers the cerenkov rad to 8 quartz exit windows which then redirect the light to spherical mirrors and to 256 PMs 
+
+number of detectable photo-e / beam particle determines:
+1. efficiency
+2. time resoltuion
+3. somewhat contamination of pi in k sample
+4. single channel hit rate (constrains read-out)
+
+need individual channels < 5 Mhz avg 
+avg product rate of photo-e < 5 MHz / PM for both gases 
+
+using H2 gas means PMs must have higher quantum efficiency 
+
+cherenkov rad from CEDAR that passed through the quartz windows is reflected by spherical mirror and onto a light guide
+
+light guide = inner wall of light box (~ faraday cage containing electronics and PMs) 
+
+
+
+	from "CERN-82-13"
+
+
+
+CEDAR can flag protons of 12 GeV and separate kaons from pions up to 150 GeV 
+
+I assume the cherenkov angle is the angle between the beam and the emitted charge particles of the beam
+
+light spot = final image made at the end of CEDAR 
+after cherenkov light relfects of a spherical mirror
+gets corrected and light (ideally from kaons) passes
+through a ring-shaped diaphram/slit and reaches a PM 
+(technically the original PMs are replaced by
+KTAG system which conssits of PMs), and the light is 
+counted. 
+Originally there were 8 PMs per window  
+
+effects broadening (widening) the light spot:
+1. optical abberations 
+	astigmatism (light scattered instead of focused)
+	coma aberrations (imperfect lenses)
+	spherical aberrations (light not reflected all at one point thus unfocused) 
+2. chromatic dispersion 
+	separation of light into different wavelengths due to the frequency
+	dependence of the refractive index of a medium and thus the phase velocity
+	(phase velocity can be > c but group velocity cannot)
+	(phase velocity = w / k, group velocity = delta w / delta k) 
+	chromatic dispersion depends on phase velocity 
+	At high energy chromatic dispersion is proprotional to theta 
+3. multiple scattering 
+	center of light ring depends on direction of particle trajectory 
+	if direction changes in the gas, get non-concentric circles and broadening
+	Depends on type of gas used 
+4. inhomogeneity of refractive index 
+	changes width of light rings 
+	No pressure grad in CEDAR but 
+	there is a temp grad after long time 
+6. photomultiplier noise 
+	light produced by halo particles that hit optics 
+	scintillation light produced by beam particles in gas
+	halo particles = particles from the halo beam
+	primary beam = proton beam prior to colliding with fixed 
+	target
+	secondary beam = charge hadronic beam after 
+	primary beam hits fixed target
+	tertiary beam = halo beams, shower of particles from 
+	interacting with equipment 
+	scintillation light = produced in transparent material 
+	when certain 
+	particle traverses through. Scintillation is a form 
+	of lumiescence (wiki)
+	luminescence = spotaneous emission of light by subtance 
+	NOT resulting from heat (opposite of incandescence) 
+	but rather from chem reactions, subatomic motion
+	 or crystal stress 
+
+number of cherenkov light emitted depends on:
+	1. length of radiator (i.e. the gas)
+	2. cherenkov angle 
+	3. range of wavelengths accepted by system  
+
+maximum pressure for gas in CEDAR = 15 bar 
+
+parameters chosen wisely to otpimize resolution:
+theta in "contradiction" with light output requirement
+reduced spectral range
+limited length of radiator
+chose gas to mimize chroamtic dispersion and multiple scattering
+
+goal: discard signal produced by unwanted particles (rings of diff diameter)
+via: light through circular diaphram and focus onto 8 PMs 

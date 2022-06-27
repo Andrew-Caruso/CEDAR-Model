@@ -276,3 +276,9 @@ chose gas to mimize chroamtic dispersion and multiple scattering
 
 goal: discard signal produced by unwanted particles (rings of diff diameter)
 via: light through circular diaphram and focus onto 8 PMs 
+
+page 15 regards the diaphram 
+	diameter of the cicular aperture: 0.03 mm to 20 mm OR 0.003 cm to 2 cm 
+page 9 regards the CEDAR chromatic corrector 
+page 11 regards the spherican Magin mirror 
+page 16 regards the index of refraction 

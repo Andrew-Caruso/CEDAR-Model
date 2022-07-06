@@ -6,13 +6,18 @@ import collections as col
 
 #global constants all in CGS 
 radiator = "N2" 
-#print("radiator:",radiator)
-#n0 = 1.0004775549188156 #refractive index property of the gas 
-#from page 16 of CERN-82 from n/(n-1) = 2095 at pressure of 1 bar and at room temp  
+print("radiator:",radiator)
+#n depends on pressure, temperature, and wavelength 
+#all naught variables are together
+#all naught variables are FIXED
 n0 = 1.00029910 #better value
 #from website https://refractiveindex.info/?shelf=main&book=N2&page=Borzsonyi
 #assuming 0.42 micrometer wavelength of cherenkov rad
-#depends on pressure, temperature, and wavelength 
+T0 = 273.15 #K 0 deg celsius 
+P0 = 1E+6 #Ba 1 bar 
+T = 293 #K 
+#let T be fixed for all particles and pressure (see index fun) 
+
 c = 29979245800 #cm/s 
 hbar = 1.05457266E-27 #g cm^2 / s 
 #1 eV = 1.60217733E-12 g cm^2 / s^2
@@ -27,22 +32,17 @@ mka = mka*factor/c**2
 mpr = mpr*factor/c**2
 mel = mel*factor/c**2 
 l = 300 #cm or 3m distance of cone 
+pi = np.pi 
 theta_min = 0
-theta_max = np.pi*2
+theta_max = pi*2
 P_max = 2E+6 #Ba 2 bar 
 P_min = 1.6E+6 #Ba 1.6 bar
-
 print("P_min: ",P_min,"Ba")
 print("P_max: ",P_max,"Ba")
 #true P min and max: vacuum and 5 bar respectively 
 P_step = 1
 p = (75*(1E+9))*factor/c #75 GeV/c to g cm/s momentum  
 #momentum is FIXED 
-#print("momentum p_fixed:",p0,"g cm/s")
-#all naught variables are together
-#293k ~ room temp  
-#neglect temperature, thus assuming deltaT = T-T0 = 0 
-P0 = 1E+6 #Ba 1 bar 
 
 '''
 DISCARD: 
@@ -88,13 +88,46 @@ def findPressure(r,m):
 	beta = 1 / (np.sqrt(((m*c/p)**2)+1))
 	Pout = (1/(beta*np.cos(np.arctan(r/l))) -1 )* P0 / (n0 -1) 
 	return Pout 
-	
+
+#generate 18 photons on a valid ring using 2D and polar coor 
+#valid ring meaning r_min < r < r_min, fits in the aperature 
+#then determine which sector each photon is in and output 
+#wherein cherenkov angle (theta) = polar angle off of the beam axis
+#phi = azimuthal angle off of x axis, in the transverse plane in respect to beam 
+
+def photonGeneration(r): 
+	numG = 1 #number of photons to generate on the ring 
+	for i in range(0,numG,1): 
+		phi = rnd.uniform(0,2*pi)
+		x = r*np.cos(phi)
+		y = r*np.sin(phi)
+		print("hypotenuse:",np.sqrt((x**2)+(y**2)))
+		print("r:",r) 
+		print("x:",x)
+		print("y:",y) 
+		print("phi:",phi) 
+		if (phi > 0 and phi < pi/4): 
+			print("sector 2") 
+		elif (phi > pi/4 and phi < pi/2):
+			print("sector 1")
+		elif (phi > pi/2 and phi < 3*pi/4): 
+			print("sector 8")
+		elif phi > 3*pi/4 and phi < pi:
+			print("sector 7")
+		elif phi > pi and phi < 5*pi/4:
+			print("sector 6") 
+		elif phi > 5*pi/4 and phi < 3*pi/2:
+			print("sector 5") 
+		elif phi > 3*pi/2 and phi < 7*pi/4:
+			print("sector 4")
+		elif phi > 7*pi/4 and phi < 2*pi: 
+			print("sector 3") 
+		else:
+			print("no sector") 
 
 #index of refraction 
 def index(P):
 	#n = (n0-1)*(P/P0) + 1 
-	T0 = 273 #K
-	T = 293 #K 
 	n = (n0-1)*(T0/P0)*(P/T)+1
 	return n
 
@@ -102,31 +135,21 @@ def index(P):
 #use the radius of the kaon ring, i.e. center the diaphram on the kaon ring 
 #with deviations of 0.9 mm from the radius, thus a thickness of 1.8 mm
 #with deviations of 0.09 cm from the radius, thus a thickness of 0.18 cm
+#NOTE: use the kaon ring at 1.75 bar and adjust it by 0.9 mm to create the 
+#aperature of the ring-like diaphram 
 
 #N2 gas at 1.75 bar, find n and r
 P_N2 = 1.75E+6 #Ba or 1.75 bar
 n = index(P_N2)  
 r_kaon = radius(mka,n)
-r_proton = radius(mpr,n)
-r_pion = radius(mpi,n)
 print("r_kaon:",r_kaon,"cm")
-print("r_proton:",r_proton,"cm")
-print("r_pion:",r_pion,"cm") 
 dev = 0.09 #cm deviation from radius 
-r_min1 = r_kaon - dev #minimum radius of the aperture 
-r_max1= r_kaon + dev #maximum radius of aperture 
-r_min2 = r_proton - dev 
-r_max2 = r_proton + dev
-r_min3 = r_pion - dev
-r_max3 = r_pion + dev 
+r_min = r_kaon - dev #minimum radius of the aperture 
+r_max= r_kaon + dev #maximum radius of aperture 
 thick = 0.18 #cm thickness of diaphram ring  
 #print(r_max-r_min) #precision issue?? 
-print("r_min kaon: ", r_min1,"cm")
-print("r_max kaon: ", r_max1,"cm")
-print("r_min proton:",r_min2,"cm") 
-print("r_max proton:",r_max2,"cm")
-print("r_min pion:",r_min3,"cm")
-print("r_max pion:",r_max3,"cm") 
+print("r_min: ", r_min,"cm")
+print("r_max: ", r_max,"cm")
 
 #all radii of rings that are not within r_min and r_max are blocked and out of focus, do not pass the diaphram's aperture, are denoted by 0
 #all radii of rings that are within r_min and r_max are in focus on the diaphram, thus pass and are detected by PMs, denoted by 1  
@@ -138,11 +161,11 @@ n = 1 #index of refraction will be changed by changing pressure via index fun
 P = 1E+6 #Ba 1 bar, as default, but will be changed 
 r = 0 #radius of ring
 stat = 0 #boolean that is either 1 or 0 depending if the ring is in the boundary or not respectively
+#number of radii to generate  
+#100 points is good enough
+N = int(1E+3) #CHANGE ME
 
-N = int(1E+3) #number of radii to generate  
-#NOTE: ^ CHANGE ME
-
-#array of stat list and P list
+#array of P list
 #2 rows N columns 
 stat_array1 = np.array([]) #empty 
 stat_array2 = np.array([]) #empty 
@@ -154,46 +177,56 @@ for i in range(0,N,1):
 	P = rnd.uniform(P_min,P_max)
 	n = index(P)
 	r = radius(mka,n) 
-	stat = check(r,P,mka,n,r_min1,r_max1,P_min,P_max)
+	stat = check(r,P,mka,n,r_min,r_max,P_min,P_max)
 	if stat == 1: 
 		stat_array1 = np.append(stat_array1, P)
+		photonGeneration(r) 
+		'''
 		print("iteration: ",i)
 		print("pressure: ",P,"Ba")
 		print("refractive index: ",n) 
 		print("radius: ",r,"cm")
 		print("stat: ",stat,"\n")
+		'''
 #monte carlo simulation for proton  
 print("for proton") 
 for i in range(0,N,1):
 	P = rnd.uniform(P_min,P_max)
 	n = index(P)
 	r = radius(mpr,n) 
-	stat = check(r,P,mpr,n,r_min1,r_max1,P_min,P_max)
+	stat = check(r,P,mpr,n,r_min,r_max,P_min,P_max)
 	if stat == 1: 
 		stat_array2 = np.append(stat_array2, P)
+		photonGeneration(r) 
+		'''
 		print("iteration: ",i)
 		print("pressure: ",P,"Ba")
 		print("refractive index: ",n) 
 		print("radius: ",r,"cm")
 		print("stat: ",stat,"\n")
+		'''
 #monte carlo simulation for pion  
 print("for pion:") 
 for i in range(0,N,1):
 	P = rnd.uniform(P_min,P_max)
 	n = index(P)
 	r = radius(mpi,n) 
-	stat = check(r,P,mpi,n,r_min1,r_max1,P_min,P_max)
+	stat = check(r,P,mpi,n,r_min,r_max,P_min,P_max)
 	if stat == 1: 
 		stat_array3 = np.append(stat_array3, P)
+		photonGeneration(r) 
+		'''
 		print("iteration: ",i)
 		print("pressure: ",P,"Ba")
 		print("refractive index: ",n) 
 		print("radius: ",r,"cm")
 		print("stat: ",stat,"\n")
+		'''
 
 #create the histogram
 #print(np.shape(stat_array1))
-num = 200 
+#number of bins, usually 200 is good 
+num = 200 #CHANGE ME  
 y1,x1, _ = plt.hist(stat_array1,bins=num,range=[P_min,P_max],label="kaon")
 y2,x2, _ = plt.hist(stat_array2,bins=num,range=[P_min,P_max],label="proton")
 y3,x3, _ = plt.hist(stat_array3,bins=num,range=[P_min,P_max],label="pion")

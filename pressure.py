@@ -2,7 +2,6 @@
 import random as rnd 
 import numpy as np
 import matplotlib.pyplot as plt 
-import matplotlib.pyplot as plt2
 import collections as col 
 from matplotlib.patches import Circle
 
@@ -137,7 +136,7 @@ def photonGeneration(r):
 		elif phi > 5*pi/4 and phi < 3*pi/2:
 			#print("sector 5") 
 			if chart[4] != 1:
-				chart[5] = 1	
+				chart[4] = 1	
 		elif phi > 3*pi/2 and phi < 7*pi/4:
 			#print("sector 4")
 			if chart[3] != 1:
@@ -172,6 +171,39 @@ def index(P):
 	n = (n0-1)*(T0/P0)*(P/T)+1
 	return n
 
+#generate binaries for 4 diff hists 
+def valuesHist5p(Nc):
+	boolean = 0 
+	if Nc >= 5:
+		boolean = 1
+	else:
+		boolean = 0
+	return boolean 
+
+def valuesHist6p(Nc):
+	boolean = 0 
+	if Nc >= 6:
+		boolean = 1
+	else:
+		boolean = 0
+	return boolean 
+		 
+def valuesHist7p(Nc):
+	boolean = 0 
+	if Nc >= 7:
+		boolean = 1
+	else:
+		boolean = 0
+	return boolean 
+
+def valuesHist8p(Nc):
+	boolean = 0 
+	if Nc == 8:
+		boolean = 1
+	else:
+		boolean = 0
+	return boolean 
+
 #dimensions of ring-like diaphram and aperture 
 #use the radius of the kaon ring, i.e. center the diaphram on the kaon ring 
 #with deviations of 0.9 mm from the radius, thus a thickness of 1.8 mm
@@ -204,83 +236,229 @@ r = 0 #radius of ring
 stat = 0 #boolean that is either 1 or 0 depending if the ring is in the boundary or not respectively
 #number of radii to generate  
 #100 points is good enough
-N = int(9E+0) #CHANGE ME
+N = int(1E+3) #CHANGE ME
 
 #array of P list
 stat_array1 = np.array([]) #empty 
 stat_array2 = np.array([]) #empty 
 stat_array3 = np.array([]) #empty 
-#array of Nc list
-Nc1_array = np.array([])  
-Nc2_array = np.array([])  
-Nc3_array = np.array([])  
+#array of Nc 5+, 6+, 7+, 8 
+stat5p_array1 = np.array([]) 
+stat6p_array1 = np.array([]) 
+stat7p_array1 = np.array([]) 
+stat8p_array1 = np.array([]) 
+stat5p_array2 = np.array([]) 
+stat6p_array2 = np.array([]) 
+stat7p_array2 = np.array([]) 
+stat8p_array2 = np.array([]) 
+stat5p_array3 = np.array([]) 
+stat6p_array3 = np.array([]) 
+stat7p_array3 = np.array([]) 
+stat8p_array3 = np.array([]) 
+
 
 #monte carlo simulation for kaon 
+#use spectrum of momentum NOT random generated momentum, to decrease fluctations in the histograms 
+#for each momentum (i.e. ring's radius)  generate 1E+2 PM detections of 18 photons  
 print("for kaon") 
-for i in range(0,N,1):
-	P = rnd.uniform(P_min,P_max)
+#for i in range(0,N,1):
+for P in range(int(P_min),int(P_max),1000):
+	#P = rnd.uniform(P_min,P_max)
 	n = index(P)
 	r = radius(mka,n) 
 	stat = check(r,P,mka,n,r_min,r_max,P_min,P_max)
+	stat5p1 = 0 #for Nc >= 5, stat 5+ 
+	stat6p1 = 0 #for Nc >= 6
+	stat7p1 = 0 #for Nc >= 7
+	stat8p1 = 0 #for Nc = 7 or 7+ 
 	if stat == 1: 
 		stat_array1 = np.append(stat_array1, P)
-		Nc1 = photonGeneration(r) #number of coincidences (see photonGen fun)  
-		color1 = getColor(Nc1)
-		dot1 = Circle((P,12),radius=1,color = color1)
-		plt2.gca().add_patch(dot1) #to plt2 NOT plt
-		'''
-		print("iteration: ",i)
-		print("pressure: ",P,"Ba")
-		print("refractive index: ",n) 
-		print("radius: ",r,"cm")
-		print("Nc: ",Nc1)
-		print("stat: ",stat,"\n")
-		'''
+		for i in range(0,int(1E+2)): 
+			Nc1 = photonGeneration(r) #number of coincidences (see photonGen fun)  
+			#print("Nc1:",Nc1)
+			color1 = getColor(Nc1)
+			stat5p1 = valuesHist5p(Nc1) 
+			stat6p1 = valuesHist6p(Nc1) 
+			stat7p1 = valuesHist7p(Nc1) 
+			stat8p1 = valuesHist8p(Nc1) 
+			if stat5p1 == 1:
+				stat5p_array1 = np.append(stat5p_array1, P)
+			if stat6p1 == 1:
+				stat6p_array1 = np.append(stat6p_array1, P)
+			if stat7p1 == 1:
+				stat7p_array1 = np.append(stat7p_array1, P)
+			if stat8p1 == 1:
+				stat8p_array1 = np.append(stat8p_array1, P)
+			'''
+			dot1 = Circle((P,12),radius=1,color = color1)
+			plt.gca().add_patch(dot1) 
+			print("iteration: ",i)
+			print("pressure: ",P,"Ba")
+			print("refractive index: ",n) 
+			print("radius: ",r,"cm")
+			print("Nc: ",Nc1)
+			print("stat: ",stat,"\n")
+			'''
+
 #monte carlo simulation for proton  
 print("for proton") 
-for i in range(0,N,1):
-	P = rnd.uniform(P_min,P_max)
+#for i in range(0,N,1):
+for P in range(int(P_min),int(P_max),1000):
+	#P = rnd.uniform(P_min,P_max)
 	n = index(P)
 	r = radius(mpr,n) 
 	stat = check(r,P,mpr,n,r_min,r_max,P_min,P_max)
+	stat5p2 = 0 #for Nc >= 5, stat 5+ 
+	stat6p2 = 0 #for Nc >= 6
+	stat7p2 = 0 #for Nc >= 7
+	stat8p2 = 0 #for Nc = 8 
 	if stat == 1: 
 		stat_array2 = np.append(stat_array2, P)
-		Nc2 = photonGeneration(r) #number of coincidences (see photonGen fun)  
-		'''
-		print("iteration: ",i)
-		print("pressure: ",P,"Ba")
-		print("refractive index: ",n) 
-		print("radius: ",r,"cm")
-		print("Nc: ",Nc2)
-		print("stat: ",stat,"\n")
-		'''
+		for i in range(0,int(1E+2)):
+			Nc2 = photonGeneration(r) #number of coincidences (see photonGen fun)  
+			stat5p2 = valuesHist5p(Nc2) 
+			stat6p2 = valuesHist6p(Nc2) 
+			stat7p2 = valuesHist7p(Nc2) 
+			stat8p2 = valuesHist8p(Nc2) 
+			if stat5p2 == 1:
+				stat5p_array2 = np.append(stat5p_array2, P)
+			if stat6p2 == 1:
+				stat6p_array2 = np.append(stat6p_array2, P)
+			if stat7p2 == 1:
+				stat7p_array2 = np.append(stat7p_array2, P)
+			if stat8p2 == 1:
+				stat8p_array2 = np.append(stat8p_array2, P)
+			'''
+			print("iteration: ",i)
+			print("pressure: ",P,"Ba")
+			print("refractive index: ",n) 
+			print("radius: ",r,"cm")
+			print("Nc: ",Nc2)
+			print("stat: ",stat,"\n")
+			'''
+
 #monte carlo simulation for pion  
 print("for pion") 
-for i in range(0,N,1):
-	P = rnd.uniform(P_min,P_max)
+#for i in range(0,N,1):
+for P in range(int(P_min),int(P_max),1000):
+	#P = rnd.uniform(P_min,P_max)
 	n = index(P)
 	r = radius(mpi,n) 
+	stat5p3 = 0 #for Nc >= 5, stat 5+ 
+	stat6p3 = 0 #for Nc >= 6
+	stat7p3 = 0 #for Nc >= 7
+	stat8p3 = 0 #for Nc = 8 
 	stat = check(r,P,mpi,n,r_min,r_max,P_min,P_max)
 	if stat == 1: 
 		stat_array3 = np.append(stat_array3, P)
-		Nc3 = photonGeneration(r) #number of coincidences (see photonGen fun)  
-		'''
-		print("iteration: ",i)
-		print("pressure: ",P,"Ba")
-		print("refractive index: ",n) 
-		print("radius: ",r,"cm")
-		print("Nc: ",Nc3)
-		print("stat: ",stat,"\n")
-		'''
+		for i in range(0,int(1E+2)):
+			Nc3 = photonGeneration(r) #number of coincidences (see photonGen fun)  
+			stat5p3 = valuesHist5p(Nc3) 
+			stat6p3 = valuesHist6p(Nc3) 
+			stat7p3 = valuesHist7p(Nc3) 
+			stat8p3 = valuesHist8p(Nc3) 
+			if stat5p3 == 1:
+				stat5p_array3 = np.append(stat5p_array3, P)
+			if stat6p3 == 1:
+				stat6p_array3 = np.append(stat6p_array3, P)
+			if stat7p3 == 1:
+				stat7p_array3 = np.append(stat7p_array3, P)
+			if stat8p3 == 1:
+				stat8p_array3 = np.append(stat8p_array3, P)
+			'''
+			print("iteration: ",i)
+			print("pressure: ",P,"Ba")
+			print("refractive index: ",n) 
+			print("radius: ",r,"cm")
+			print("Nc: ",Nc3)
+			print("stat: ",stat,"\n")
+			'''
 
+#create a histogram 
 #number of bins, usually 200 is good 
 num = 200 #CHANGE ME  
-#create the histogram using plt
-#print(np.shape(stat_array1))
-b1,v1, _ = plt.hist(stat_array1,bins=num,range=[P_min,P_max],label="kaon",color='tab:blue')
-b2,v2, _ = plt.hist(stat_array2,bins=num,range=[P_min,P_max],label="proton",color='tab:orange')
-b3,v3, _ = plt.hist(stat_array3,bins=num,range=[P_min,P_max],label="pion",color='tab:green')
-#b are bins, v are values of momentum, _ are patches (ignored) 
+#create figure/canvas and axes/pads 
+fig1, ax1 = plt.subplots(1,1)
+'''
+print("stat_array1:",stat_array1)
+print("stat_array2:",stat_array2)
+print("stat_array3:",stat_array3)
+'''
+print("shape of stat_array1:",np.shape(stat_array1))
+#alternatively equivalent: fig, (ax1, ax2)
+b1,v1, _ = ax1.hist(stat_array1,bins=num,range=[P_min,P_max],label="kaon",color='tab:blue')
+b2,v2, _ = ax1.hist(stat_array2,bins=num,range=[P_min,P_max],label="proton",color='tab:orange')
+b3,v3, _ = ax1.hist(stat_array3,bins=num,range=[P_min,P_max],label="pion",color='tab:green')
+#b are bins, v are values of momentum marking the start and end of each bin, and _ are patches (ignored) 
+ax1.set_xlabel("pressure (Ba)")
+ax1.set_ylabel("frequency")
+ax1.legend(loc="best") 
+print("b1 shape:",np.shape(b1))
+print("v1 shape:",np.shape(v1))
+'''
+print("b1",b1)
+print("v1",v1)
+'''
+
+#create histograms for Nc 5+,6+,7+,8+ 
+fig3,ax3 = plt.subplots(1,1) 
+b5p1,v5p1, _ = ax3.hist(stat5p_array1,bins=num,range=[P_min,P_max],label="5+",color='magenta')
+b6p1,v6p1, _ = ax3.hist(stat6p_array1,bins=num,range=[P_min,P_max],label="6+",color='darkred')
+b7p1,v7p1, _ = ax3.hist(stat7p_array1,bins=num,range=[P_min,P_max],label="7+",color='lime')
+b8p1,v8p1, _ = ax3.hist(stat8p_array1,bins=num,range=[P_min,P_max],label="8",color='cyan')
+
+b5p2,v5p2, _ = ax3.hist(stat5p_array2,bins=num,range=[P_min,P_max],color='magenta')
+b6p2,v6p2, _ = ax3.hist(stat6p_array2,bins=num,range=[P_min,P_max],color='darkred')
+b7p2,v7p2, _ = ax3.hist(stat7p_array2,bins=num,range=[P_min,P_max],color='lime')
+b8p2,v8p2, _ = ax3.hist(stat8p_array2,bins=num,range=[P_min,P_max],color='cyan')
+
+b5p3,v5p3, _ = ax3.hist(stat5p_array3,bins=num,range=[P_min,P_max],color='magenta')
+b6p3,v6p3, _ = ax3.hist(stat6p_array3,bins=num,range=[P_min,P_max],color='darkred')
+b7p3,v7p3, _ = ax3.hist(stat7p_array3,bins=num,range=[P_min,P_max],color='lime')
+b8p3,v8p3, _ = ax3.hist(stat8p_array3,bins=num,range=[P_min,P_max],color='cyan')
+ax3.set_xlabel("pressure (Ba)")
+ax3.set_ylabel("frequency")
+ax3.legend(loc="best") 
+
+
+#get midpoints and plot "errorbars" in figure 2 
+#create figure 2
+fig2,ax2 = plt.subplots(1,1) 
+mid1 = (v1[:-1] + v1[1:]) / 2 
+mid2 = (v2[:-1] + v2[1:]) / 2 
+mid3 = (v3[:-1] + v3[1:]) / 2 
+print("mids1 shape:",np.shape(mid1))
+ax2.errorbar(x=mid1,y=b1,yerr=0,fmt='o',capsize=2)
+ax2.errorbar(x=mid2,y=b2,yerr=0,fmt='o',capsize=2)
+ax2.errorbar(x=mid3,y=b3,yerr=0,fmt='o',capsize=2)
+#get midpoints for Nc 5+,6+,7+,8+ 
+mid5p1 = (v5p1[:-1] + v5p1[1:]) / 2 
+mid6p1 = (v6p1[:-1] + v6p1[1:]) / 2 
+mid7p1 = (v7p1[:-1] + v7p1[1:]) / 2 
+mid8p1 = (v8p1[:-1] + v8p1[1:]) / 2 
+ax2.errorbar(x=mid5p1,y=b5p1,yerr=0,fmt='o',capsize=2,color="magenta")
+ax2.errorbar(x=mid6p1,y=b6p1,yerr=0,fmt='o',capsize=2,color="darkred")
+ax2.errorbar(x=mid7p1,y=b7p1,yerr=0,fmt='o',capsize=2,color="lime")
+ax2.errorbar(x=mid8p1,y=b8p1,yerr=0,fmt='o',capsize=2,color="cyan")
+
+mid5p2 = (v5p2[:-1] + v5p2[1:]) / 2 
+mid6p2 = (v6p2[:-1] + v6p2[1:]) / 2 
+mid7p2 = (v7p2[:-1] + v7p2[1:]) / 2 
+mid8p2 = (v8p2[:-1] + v8p2[1:]) / 2 
+ax2.errorbar(x=mid5p2,y=b5p2,yerr=0,fmt='o',capsize=2,color="magenta")
+ax2.errorbar(x=mid6p2,y=b6p2,yerr=0,fmt='o',capsize=2,color="darkred")
+ax2.errorbar(x=mid7p2,y=b7p2,yerr=0,fmt='o',capsize=2,color="lime")
+ax2.errorbar(x=mid8p2,y=b8p2,yerr=0,fmt='o',capsize=2,color="cyan")
+
+mid5p3 = (v5p3[:-1] + v5p3[1:]) / 2 
+mid6p3 = (v6p3[:-1] + v6p3[1:]) / 2 
+mid7p3 = (v7p3[:-1] + v7p3[1:]) / 2 
+mid8p3 = (v8p3[:-1] + v8p3[1:]) / 2 
+ax2.errorbar(x=mid5p3,y=b5p3,yerr=0,fmt='o',capsize=2,color="magenta")
+ax2.errorbar(x=mid6p3,y=b6p3,yerr=0,fmt='o',capsize=2,color="darkred")
+ax2.errorbar(x=mid7p3,y=b7p3,yerr=0,fmt='o',capsize=2,color="lime")
+ax2.errorbar(x=mid8p3,y=b8p3,yerr=0,fmt='o',capsize=2,color="cyan")
+
 #find most common value and the count 
 '''
 print("b1:",b1)
@@ -296,19 +474,16 @@ indexarray3 = np.where(b3 == b3.max())
 index1 = indexarray1[0] 
 index2 = indexarray2[0] 
 index3 = indexarray3[0] 
-'''
-print(type(index1)) 
-print("kaon greatest frequency:",b1.max(),"at index:",index1,"pressure:",v1[index1],"Ba")
-print("proton greatest frequency:",b2.max(),"at index:",index2,"pressure:",v2[index2],"Ba")
-print("pion greatest frequency:",b3.max(),"at index:",index3,"pressure:",v3[index3],"Ba")
-'''
-plt.xlabel("pressure (Ba)")
-plt.ylabel("frequency") 
-plt.legend(loc="best") 
+#print(type(index1)) 
+v1max = ((v1[index1]+v1[index1+1])/2)
+v2max = ((v2[index2]+v2[index2+1])/2)
+v3max = ((v3[index3]+v3[index3+1])/2)
+print("kaon greatest frequency:",b1.max(),"at index:",index1,"pressure:",v1max,"Ba")
+print("proton greatest frequency:",b2.max(),"at index:",index2,"pressure:",v2max,"Ba")
+print("pion greatest frequency:",b3.max(),"at index:",index3,"pressure:",v3max,"Ba") 
+#3 peaks should roughly be in the ratio pion:proton:kaon of 70:24:6
+print("expected pion:proton:kaon = 70:24:6") 
+
+
+#display the 3 figures
 plt.show()
-
-
-#create scatter plots using plt2
-c1 = np.ones(len(v1))#all ones for every momentum 
-plt.scatter(v1,c1,label="kaon plot")
-

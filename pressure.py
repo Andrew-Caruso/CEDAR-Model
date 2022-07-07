@@ -2,7 +2,9 @@
 import random as rnd 
 import numpy as np
 import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt2
 import collections as col 
+from matplotlib.patches import Circle
 
 #global constants all in CGS 
 radiator = "N2" 
@@ -94,36 +96,75 @@ def findPressure(r,m):
 #then determine which sector each photon is in and output 
 #wherein cherenkov angle (theta) = polar angle off of the beam axis
 #phi = azimuthal angle off of x axis, in the transverse plane in respect to beam 
+#need coincidences to be 5,6,7 or 8 to graph as valid detection by photomultipliers PMs
+#8 sectors = 8 PMs 
+#presumption: need 1 or more photons to count as a detection by 1 sector (i.e. PM) 
 
 def photonGeneration(r): 
-	numG = 1 #number of photons to generate on the ring 
+	numG = 18 #number of photons to generate on the ring 
+	chart = np.zeros(8) #index = sector-1  
 	for i in range(0,numG,1): 
 		phi = rnd.uniform(0,2*pi)
 		x = r*np.cos(phi)
 		y = r*np.sin(phi)
+		'''
 		print("hypotenuse:",np.sqrt((x**2)+(y**2)))
 		print("r:",r) 
 		print("x:",x)
 		print("y:",y) 
 		print("phi:",phi) 
+		'''
 		if (phi > 0 and phi < pi/4): 
-			print("sector 2") 
+			#print("sector 2") 
+			if chart[1] != 1:
+				chart[1] = 1 
 		elif (phi > pi/4 and phi < pi/2):
-			print("sector 1")
+			#print("sector 1")
+			if chart[0] != 1:
+				chart[0] = 1	
 		elif (phi > pi/2 and phi < 3*pi/4): 
-			print("sector 8")
+			#print("sector 8")
+			if chart[7] != 1:
+				chart[7] = 1	
 		elif phi > 3*pi/4 and phi < pi:
-			print("sector 7")
+			#print("sector 7")
+			if chart[6] != 1:
+				chart[6] = 1	
 		elif phi > pi and phi < 5*pi/4:
-			print("sector 6") 
+			#print("sector 6") 
+			if chart[5] != 1:
+				chart[5] = 1	
 		elif phi > 5*pi/4 and phi < 3*pi/2:
-			print("sector 5") 
+			#print("sector 5") 
+			if chart[4] != 1:
+				chart[5] = 1	
 		elif phi > 3*pi/2 and phi < 7*pi/4:
-			print("sector 4")
+			#print("sector 4")
+			if chart[3] != 1:
+				chart[3] = 1	
 		elif phi > 7*pi/4 and phi < 2*pi: 
-			print("sector 3") 
+			#print("sector 3") 
+			if chart[2] != 1:
+				chart[2] = 1	
 		else:
 			print("no sector") 
+	#print("chart:",chart)
+	totCount = np.sum(chart) #total number of sectors that made a detection (1 or more photons)
+	#total count is the number of coincidences Nc, number of PMs that coincide with the same detection (recieve photons from same source/particle 
+	return totCount 
+
+#get color based on the Nc
+def getColor(Nc):
+	color = "white"
+	if Nc == 5:
+		color = "magenta"
+	elif Nc == 6:
+		color = "darkred"
+	elif Nc == 7:
+		color = "lime"
+	elif Nc == 8:
+		color = "cyan"
+	return color 
 
 #index of refraction 
 def index(P):
@@ -163,13 +204,16 @@ r = 0 #radius of ring
 stat = 0 #boolean that is either 1 or 0 depending if the ring is in the boundary or not respectively
 #number of radii to generate  
 #100 points is good enough
-N = int(1E+3) #CHANGE ME
+N = int(9E+0) #CHANGE ME
 
 #array of P list
-#2 rows N columns 
 stat_array1 = np.array([]) #empty 
 stat_array2 = np.array([]) #empty 
 stat_array3 = np.array([]) #empty 
+#array of Nc list
+Nc1_array = np.array([])  
+Nc2_array = np.array([])  
+Nc3_array = np.array([])  
 
 #monte carlo simulation for kaon 
 print("for kaon") 
@@ -180,12 +224,16 @@ for i in range(0,N,1):
 	stat = check(r,P,mka,n,r_min,r_max,P_min,P_max)
 	if stat == 1: 
 		stat_array1 = np.append(stat_array1, P)
-		photonGeneration(r) 
+		Nc1 = photonGeneration(r) #number of coincidences (see photonGen fun)  
+		color1 = getColor(Nc1)
+		dot1 = Circle((P,12),radius=1,color = color1)
+		plt2.gca().add_patch(dot1) #to plt2 NOT plt
 		'''
 		print("iteration: ",i)
 		print("pressure: ",P,"Ba")
 		print("refractive index: ",n) 
 		print("radius: ",r,"cm")
+		print("Nc: ",Nc1)
 		print("stat: ",stat,"\n")
 		'''
 #monte carlo simulation for proton  
@@ -197,16 +245,17 @@ for i in range(0,N,1):
 	stat = check(r,P,mpr,n,r_min,r_max,P_min,P_max)
 	if stat == 1: 
 		stat_array2 = np.append(stat_array2, P)
-		photonGeneration(r) 
+		Nc2 = photonGeneration(r) #number of coincidences (see photonGen fun)  
 		'''
 		print("iteration: ",i)
 		print("pressure: ",P,"Ba")
 		print("refractive index: ",n) 
 		print("radius: ",r,"cm")
+		print("Nc: ",Nc2)
 		print("stat: ",stat,"\n")
 		'''
 #monte carlo simulation for pion  
-print("for pion:") 
+print("for pion") 
 for i in range(0,N,1):
 	P = rnd.uniform(P_min,P_max)
 	n = index(P)
@@ -214,46 +263,52 @@ for i in range(0,N,1):
 	stat = check(r,P,mpi,n,r_min,r_max,P_min,P_max)
 	if stat == 1: 
 		stat_array3 = np.append(stat_array3, P)
-		photonGeneration(r) 
+		Nc3 = photonGeneration(r) #number of coincidences (see photonGen fun)  
 		'''
 		print("iteration: ",i)
 		print("pressure: ",P,"Ba")
 		print("refractive index: ",n) 
 		print("radius: ",r,"cm")
+		print("Nc: ",Nc3)
 		print("stat: ",stat,"\n")
 		'''
 
-#create the histogram
-#print(np.shape(stat_array1))
 #number of bins, usually 200 is good 
 num = 200 #CHANGE ME  
-y1,x1, _ = plt.hist(stat_array1,bins=num,range=[P_min,P_max],label="kaon")
-y2,x2, _ = plt.hist(stat_array2,bins=num,range=[P_min,P_max],label="proton")
-y3,x3, _ = plt.hist(stat_array3,bins=num,range=[P_min,P_max],label="pion")
-#y are bins, x are values 
+#create the histogram using plt
+#print(np.shape(stat_array1))
+b1,v1, _ = plt.hist(stat_array1,bins=num,range=[P_min,P_max],label="kaon",color='tab:blue')
+b2,v2, _ = plt.hist(stat_array2,bins=num,range=[P_min,P_max],label="proton",color='tab:orange')
+b3,v3, _ = plt.hist(stat_array3,bins=num,range=[P_min,P_max],label="pion",color='tab:green')
+#b are bins, v are values of momentum, _ are patches (ignored) 
 #find most common value and the count 
 '''
-print("y1:",y1)
-print("x1:",x1)
-print("y2:",y2)
-print("x2:",x2)
-print("y3:",y3)
-print("x3:",x3)
+print("b1:",b1)
+print("v1:",v1)
+print("b2:",b2)
+print("v2:",v2)
+print("b3:",b3)
+print("v3:",v3)
 '''
-indexarray1 = np.where(y1 == y1.max())  
-indexarray2 = np.where(y2 == y2.max()) 
-indexarray3 = np.where(y3 == y3.max()) 
+indexarray1 = np.where(b1 == b1.max())  
+indexarray2 = np.where(b2 == b2.max()) 
+indexarray3 = np.where(b3 == b3.max()) 
 index1 = indexarray1[0] 
 index2 = indexarray2[0] 
 index3 = indexarray3[0] 
 '''
 print(type(index1)) 
-print("kaon greatest frequency:",y1.max(),"at index:",index1,"pressure:",x1[index1],"Ba")
-print("proton greatest frequency:",y2.max(),"at index:",index2,"pressure:",x2[index2],"Ba")
-print("pion greatest frequency:",y3.max(),"at index:",index3,"pressure:",x3[index3],"Ba")
+print("kaon greatest frequency:",b1.max(),"at index:",index1,"pressure:",v1[index1],"Ba")
+print("proton greatest frequency:",b2.max(),"at index:",index2,"pressure:",v2[index2],"Ba")
+print("pion greatest frequency:",b3.max(),"at index:",index3,"pressure:",v3[index3],"Ba")
 '''
 plt.xlabel("pressure (Ba)")
 plt.ylabel("frequency") 
 plt.legend(loc="best") 
 plt.show()
+
+
+#create scatter plots using plt2
+c1 = np.ones(len(v1))#all ones for every momentum 
+plt.scatter(v1,c1,label="kaon plot")
 

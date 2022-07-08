@@ -1,11 +1,23 @@
 #task 3 monte carlo simulation of successful rings for different pressures assuming the simplest cone model 
 import random as rnd 
-import numpy as np
+import time
 import matplotlib.pyplot as plt 
-import collections as col 
-from matplotlib.patches import Circle
+from numpy import sqrt as sqrt 
+from numpy import array as array 
+from numpy import append as append 
+from numpy import zeros as zeros 
+from numpy import cos as cos 
+from numpy import sin as sin 
+from numpy import arctan as arctan 
+from numpy import arccos as arccos
+from numpy import tan as tan 
+from numpy import shape as shape 
+from numpy import where as where 
+from numpy import pi as pi 
+from numpy import random as rand 
 
 #global constants all in CGS 
+start_time = time.time() #start the timer
 radiator = "N2" 
 print("radiator:",radiator)
 #n depends on pressure, temperature, and wavelength 
@@ -18,7 +30,6 @@ T0 = 273.15 #K 0 deg celsius
 P0 = 1E+6 #Ba 1 bar 
 T = 293 #K 
 #let T be fixed for all particles and pressure (see index fun) 
-
 c = 29979245800 #cm/s 
 hbar = 1.05457266E-27 #g cm^2 / s 
 #1 eV = 1.60217733E-12 g cm^2 / s^2
@@ -33,7 +44,6 @@ mka = mka*factor/c**2
 mpr = mpr*factor/c**2
 mel = mel*factor/c**2 
 l = 300 #cm or 3m distance of cone 
-pi = np.pi 
 theta_min = 0
 theta_max = pi*2
 P_max = 2E+6 #Ba 2 bar 
@@ -44,15 +54,6 @@ print("P_max: ",P_max,"Ba")
 P_step = 1
 p = (75*(1E+9))*factor/c #75 GeV/c to g cm/s momentum  
 #momentum is FIXED 
-
-'''
-DISCARD: 
-R_min = 0.003 #cm 0.03 mm, minimum inner radius of ring (aperture lower bound)
-R_max = 2 #cm 20 mm, maximum inner radius of ring (aperture upper bound)
-D_max = 10 #cm 100 m #maximum outer radius of the ring (diaphram radius)
-#because the aperture size can be changed then 
-#radius of aperture is selected such that R_min < r < R_max 
-'''
 #notes on pressure P 
 #1 barye (Ba) = 1 g /(cm s^2) = 0.1 Pa  
 #1 Pa = 10 Ba 
@@ -61,24 +62,29 @@ D_max = 10 #cm 100 m #maximum outer radius of the ring (diaphram radius)
 #pressure goes from vacuum to 5 bar
 #p vs P 
 #keep momentum p constant at 75 GeV 
+#off set the aperture (via off set photons) 
+#see photonGeneration fun 
+x_off = 0.1 #cm 
+y_off = 0.1 #cm 
 
+#create all the functions
 #radius function 
 def radius(m,n):
-	beta = 1 / (np.sqrt(((m*c/p)**2)+1))
+	beta = 1 / (sqrt(((m*c/p)**2)+1))
 	#print(beta*n)
 	if (beta*n < 1):
 		stat = 0
 		r = 0
 	else:
-		theta = np.arccos(1/(n*beta))
-		r = l*np.tan(theta)
+		theta = arccos(1/(n*beta))
+		r = l*tan(theta)
 	#print(r)
 	return r 
 
 #check the ring's radius 
 def check(r,P,m,n,r_min,r_max,P_min,P_max):
 	boolean = 0
-	beta = 1 / (np.sqrt(((m*c/p)**2)+1))
+	beta = 1 / (sqrt(((m*c/p)**2)+1))
 	if ((beta*n >= 1) and (r_min < r) and (r_max > r) and (P_min < P) and (P_max > P)): 
 		boolean = 1
 	else: 
@@ -86,8 +92,8 @@ def check(r,P,m,n,r_min,r_max,P_min,P_max):
 	return boolean 
 
 def findPressure(r,m):
-	beta = 1 / (np.sqrt(((m*c/p)**2)+1))
-	Pout = (1/(beta*np.cos(np.arctan(r/l))) -1 )* P0 / (n0 -1) 
+	beta = 1 / (sqrt(((m*c/p)**2)+1))
+	Pout = (1/(beta*cos(arctan(r/l))) -1 )* P0 / (n0 -1) 
 	return Pout 
 
 #generate 18 photons on a valid ring using 2D and polar coor 
@@ -99,15 +105,29 @@ def findPressure(r,m):
 #8 sectors = 8 PMs 
 #presumption: need 1 or more photons to count as a detection by 1 sector (i.e. PM) 
 
+#photon smearing: instead of having each photon exactly on the ring, given them their own radii that is not exactly on the radius r 
+#this is done by chosing a radius from a normal/gaussian distribution centered on r, for each photon 
+
+#shifting the aperture in the tranverse xy plane. 
+#Instead of adjusting the actual poisition of the aperture, adjust the photon x and y positions, thus the radius of each photon 
+
 def photonGeneration(r): 
 	numG = 18 #number of photons to generate on the ring 
-	chart = np.zeros(8) #index = sector-1  
+	chart = zeros(8) #index = sector-1  
+	mu = r #mean for normal/gaussian distribution 
+	sigma = 0.01 #cm std, smearing of the photons  
+	#loop through each photon 
 	for i in range(0,numG,1): 
-		phi = rnd.uniform(0,2*pi)
-		x = r*np.cos(phi)
-		y = r*np.sin(phi)
+		phi = rnd.uniform(0,2*pi) #generate random angle
+		r0 = rand.normal(mu,sigma) #generate photon's radius from center
+		x = r0*cos(phi) + x_off 
+		y = r0*sin(phi) + y_off 
+		r1 = sqrt(x**2 + y**2) 
+		#if the photon radius is no longer in the ring, throw the iteration out and move on to the next photon  
+		if r1 < r_min or r1 > r_max:
+			continue
 		'''
-		print("hypotenuse:",np.sqrt((x**2)+(y**2)))
+		print("hypotenuse:",sqrt((x**2)+(y**2)))
 		print("r:",r) 
 		print("x:",x)
 		print("y:",y) 
@@ -148,7 +168,7 @@ def photonGeneration(r):
 		else:
 			print("no sector") 
 	#print("chart:",chart)
-	totCount = np.sum(chart) #total number of sectors that made a detection (1 or more photons)
+	totCount = sum(chart) #total number of sectors that made a detection (1 or more photons)
 	#total count is the number of coincidences Nc, number of PMs that coincide with the same detection (recieve photons from same source/particle 
 	return totCount 
 
@@ -172,6 +192,7 @@ def index(P):
 	return n
 
 #generate binaries for 4 diff hists 
+#for number of coincidences being 5+ (i.e. >=5), 6+, 7+, 8
 def valuesHist5p(Nc):
 	boolean = 0 
 	if Nc >= 5:
@@ -203,6 +224,25 @@ def valuesHist8p(Nc):
 	else:
 		boolean = 0
 	return boolean 
+'''
+#filter out the zeros in the bins array b and corresponding values array v 
+#get the midpoint values from an array 
+def filterZerosGetMid(b,v):
+	output = array([[],[]])
+	#output[0] reps b output[1] reps v  
+	indexb = where(b != 0) #get all indices where b is not zero 
+	tempv = v[indexb] #temporary values  
+	print("shape of output[0]",shape(output[0]))
+	print("shape of b[indexb]",shape(b[indexb]))
+	print("shape of output[1]",shape(output[1]))
+	print("shape of tempv",shape(tempv))
+	for i in range(0,len(b[indexb])):
+		output[0] = append(output[0], b[indexb][i]) #new b values omitting the zeros  
+	#get midpoints in tempv 
+	#for i in range(0,len(tempv)):
+		#output[1] = append(output[1], ((tempv[:-1] + tempv[1:]) / 2) )
+	return output  
+'''
 
 #dimensions of ring-like diaphram and aperture 
 #use the radius of the kaon ring, i.e. center the diaphram on the kaon ring 
@@ -210,9 +250,8 @@ def valuesHist8p(Nc):
 #with deviations of 0.09 cm from the radius, thus a thickness of 0.18 cm
 #NOTE: use the kaon ring at 1.75 bar and adjust it by 0.9 mm to create the 
 #aperature of the ring-like diaphram 
-
 #N2 gas at 1.75 bar, find n and r
-P_N2 = 1.75E+6 #Ba or 1.75 bar
+P_N2 = 1.75E+6 #Ba or 1.75 bar of N2 gas 
 n = index(P_N2)  
 r_kaon = radius(mka,n)
 print("r_kaon:",r_kaon,"cm")
@@ -223,7 +262,6 @@ thick = 0.18 #cm thickness of diaphram ring
 #print(r_max-r_min) #precision issue?? 
 print("r_min: ", r_min,"cm")
 print("r_max: ", r_max,"cm")
-
 #all radii of rings that are not within r_min and r_max are blocked and out of focus, do not pass the diaphram's aperture, are denoted by 0
 #all radii of rings that are within r_min and r_max are in focus on the diaphram, thus pass and are detected by PMs, denoted by 1  
 #vary the pressure with temperature, momentum, and mass fixed 
@@ -238,31 +276,31 @@ stat = 0 #boolean that is either 1 or 0 depending if the ring is in the boundary
 #100 points is good enough
 N = int(1E+3) #CHANGE ME
 
+#create empty arrays for the histograms 
 #array of P list
-stat_array1 = np.array([]) #empty 
-stat_array2 = np.array([]) #empty 
-stat_array3 = np.array([]) #empty 
+stat_array1 = array([]) #empty 
+stat_array2 = array([]) #empty 
+stat_array3 = array([]) #empty 
 #array of Nc 5+, 6+, 7+, 8 
-stat5p_array1 = np.array([]) 
-stat6p_array1 = np.array([]) 
-stat7p_array1 = np.array([]) 
-stat8p_array1 = np.array([]) 
-stat5p_array2 = np.array([]) 
-stat6p_array2 = np.array([]) 
-stat7p_array2 = np.array([]) 
-stat8p_array2 = np.array([]) 
-stat5p_array3 = np.array([]) 
-stat6p_array3 = np.array([]) 
-stat7p_array3 = np.array([]) 
-stat8p_array3 = np.array([]) 
-
+stat5p_array1 = array([]) 
+stat6p_array1 = array([]) 
+stat7p_array1 = array([]) 
+stat8p_array1 = array([]) 
+stat5p_array2 = array([]) 
+stat6p_array2 = array([]) 
+stat7p_array2 = array([]) 
+stat8p_array2 = array([]) 
+stat5p_array3 = array([]) 
+stat6p_array3 = array([]) 
+stat7p_array3 = array([]) 
+stat8p_array3 = array([]) 
 
 #monte carlo simulation for kaon 
 #use spectrum of momentum NOT random generated momentum, to decrease fluctations in the histograms 
 #for each momentum (i.e. ring's radius)  generate 1E+2 PM detections of 18 photons  
 print("for kaon") 
 #for i in range(0,N,1):
-for P in range(int(P_min),int(P_max),1000):
+for P in range(int(P_min),int(P_max),2000):
 	#P = rnd.uniform(P_min,P_max)
 	n = index(P)
 	r = radius(mka,n) 
@@ -272,38 +310,36 @@ for P in range(int(P_min),int(P_max),1000):
 	stat7p1 = 0 #for Nc >= 7
 	stat8p1 = 0 #for Nc = 7 or 7+ 
 	if stat == 1: 
-		stat_array1 = np.append(stat_array1, P)
-		for i in range(0,int(1E+2)): 
-			Nc1 = photonGeneration(r) #number of coincidences (see photonGen fun)  
-			#print("Nc1:",Nc1)
-			color1 = getColor(Nc1)
-			stat5p1 = valuesHist5p(Nc1) 
-			stat6p1 = valuesHist6p(Nc1) 
-			stat7p1 = valuesHist7p(Nc1) 
-			stat8p1 = valuesHist8p(Nc1) 
-			if stat5p1 == 1:
-				stat5p_array1 = np.append(stat5p_array1, P)
-			if stat6p1 == 1:
-				stat6p_array1 = np.append(stat6p_array1, P)
-			if stat7p1 == 1:
-				stat7p_array1 = np.append(stat7p_array1, P)
-			if stat8p1 == 1:
-				stat8p_array1 = np.append(stat8p_array1, P)
-			'''
-			dot1 = Circle((P,12),radius=1,color = color1)
-			plt.gca().add_patch(dot1) 
-			print("iteration: ",i)
-			print("pressure: ",P,"Ba")
-			print("refractive index: ",n) 
-			print("radius: ",r,"cm")
-			print("Nc: ",Nc1)
-			print("stat: ",stat,"\n")
-			'''
+		stat_array1 = append(stat_array1, P)
+	for i in range(0,int(1E+2)): 
+		Nc1 = photonGeneration(r) #number of coincidences (see photonGen fun)  
+		#print("Nc1:",Nc1)
+		color1 = getColor(Nc1)
+		stat5p1 = valuesHist5p(Nc1) 
+		stat6p1 = valuesHist6p(Nc1) 
+		stat7p1 = valuesHist7p(Nc1) 
+		stat8p1 = valuesHist8p(Nc1) 
+		if stat5p1 == 1:
+			stat5p_array1 = append(stat5p_array1, P)
+		if stat6p1 == 1:
+			stat6p_array1 = append(stat6p_array1, P)
+		if stat7p1 == 1:
+			stat7p_array1 = append(stat7p_array1, P)
+		if stat8p1 == 1:
+			stat8p_array1 = append(stat8p_array1, P)
+		'''
+		print("iteration: ",i)
+		print("pressure: ",P,"Ba")
+		print("refractive index: ",n) 
+		print("radius: ",r,"cm")
+		print("Nc: ",Nc1)
+		print("stat: ",stat,"\n")
+		'''
 
 #monte carlo simulation for proton  
 print("for proton") 
 #for i in range(0,N,1):
-for P in range(int(P_min),int(P_max),1000):
+for P in range(int(P_min),int(P_max),2000):
 	#P = rnd.uniform(P_min,P_max)
 	n = index(P)
 	r = radius(mpr,n) 
@@ -313,7 +349,7 @@ for P in range(int(P_min),int(P_max),1000):
 	stat7p2 = 0 #for Nc >= 7
 	stat8p2 = 0 #for Nc = 8 
 	if stat == 1: 
-		stat_array2 = np.append(stat_array2, P)
+		stat_array2 = append(stat_array2, P)
 		for i in range(0,int(1E+2)):
 			Nc2 = photonGeneration(r) #number of coincidences (see photonGen fun)  
 			stat5p2 = valuesHist5p(Nc2) 
@@ -321,13 +357,13 @@ for P in range(int(P_min),int(P_max),1000):
 			stat7p2 = valuesHist7p(Nc2) 
 			stat8p2 = valuesHist8p(Nc2) 
 			if stat5p2 == 1:
-				stat5p_array2 = np.append(stat5p_array2, P)
+				stat5p_array2 = append(stat5p_array2, P)
 			if stat6p2 == 1:
-				stat6p_array2 = np.append(stat6p_array2, P)
+				stat6p_array2 = append(stat6p_array2, P)
 			if stat7p2 == 1:
-				stat7p_array2 = np.append(stat7p_array2, P)
+				stat7p_array2 = append(stat7p_array2, P)
 			if stat8p2 == 1:
-				stat8p_array2 = np.append(stat8p_array2, P)
+				stat8p_array2 = append(stat8p_array2, P)
 			'''
 			print("iteration: ",i)
 			print("pressure: ",P,"Ba")
@@ -340,7 +376,7 @@ for P in range(int(P_min),int(P_max),1000):
 #monte carlo simulation for pion  
 print("for pion") 
 #for i in range(0,N,1):
-for P in range(int(P_min),int(P_max),1000):
+for P in range(int(P_min),int(P_max),2000):
 	#P = rnd.uniform(P_min,P_max)
 	n = index(P)
 	r = radius(mpi,n) 
@@ -350,7 +386,7 @@ for P in range(int(P_min),int(P_max),1000):
 	stat8p3 = 0 #for Nc = 8 
 	stat = check(r,P,mpi,n,r_min,r_max,P_min,P_max)
 	if stat == 1: 
-		stat_array3 = np.append(stat_array3, P)
+		stat_array3 = append(stat_array3, P)
 		for i in range(0,int(1E+2)):
 			Nc3 = photonGeneration(r) #number of coincidences (see photonGen fun)  
 			stat5p3 = valuesHist5p(Nc3) 
@@ -358,13 +394,13 @@ for P in range(int(P_min),int(P_max),1000):
 			stat7p3 = valuesHist7p(Nc3) 
 			stat8p3 = valuesHist8p(Nc3) 
 			if stat5p3 == 1:
-				stat5p_array3 = np.append(stat5p_array3, P)
+				stat5p_array3 = append(stat5p_array3, P)
 			if stat6p3 == 1:
-				stat6p_array3 = np.append(stat6p_array3, P)
+				stat6p_array3 = append(stat6p_array3, P)
 			if stat7p3 == 1:
-				stat7p_array3 = np.append(stat7p_array3, P)
+				stat7p_array3 = append(stat7p_array3, P)
 			if stat8p3 == 1:
-				stat8p_array3 = np.append(stat8p_array3, P)
+				stat8p_array3 = append(stat8p_array3, P)
 			'''
 			print("iteration: ",i)
 			print("pressure: ",P,"Ba")
@@ -374,7 +410,8 @@ for P in range(int(P_min),int(P_max),1000):
 			print("stat: ",stat,"\n")
 			'''
 
-#create a histogram 
+#create histograms for each particle of
+#valid pressures only (whose generated radius falls within the ring of the diaphram)  
 #number of bins, usually 200 is good 
 num = 200 #CHANGE ME  
 #create figure/canvas and axes/pads 
@@ -384,7 +421,7 @@ print("stat_array1:",stat_array1)
 print("stat_array2:",stat_array2)
 print("stat_array3:",stat_array3)
 '''
-print("shape of stat_array1:",np.shape(stat_array1))
+print("shape of stat_array1:",shape(stat_array1))
 #alternatively equivalent: fig, (ax1, ax2)
 b1,v1, _ = ax1.hist(stat_array1,bins=num,range=[P_min,P_max],label="kaon",color='tab:blue')
 b2,v2, _ = ax1.hist(stat_array2,bins=num,range=[P_min,P_max],label="proton",color='tab:orange')
@@ -393,14 +430,14 @@ b3,v3, _ = ax1.hist(stat_array3,bins=num,range=[P_min,P_max],label="pion",color=
 ax1.set_xlabel("pressure (Ba)")
 ax1.set_ylabel("frequency")
 ax1.legend(loc="best") 
-print("b1 shape:",np.shape(b1))
-print("v1 shape:",np.shape(v1))
+print("b1 shape:",shape(b1))
+print("v1 shape:",shape(v1))
 '''
 print("b1",b1)
 print("v1",v1)
 '''
 
-#create histograms for Nc 5+,6+,7+,8+ 
+#create histograms for Nc 5+,6+,7+,8+ for each particle 
 fig3,ax3 = plt.subplots(1,1) 
 b5p1,v5p1, _ = ax3.hist(stat5p_array1,bins=num,range=[P_min,P_max],label="5+",color='magenta')
 b6p1,v6p1, _ = ax3.hist(stat6p_array1,bins=num,range=[P_min,P_max],label="6+",color='darkred')
@@ -420,17 +457,17 @@ ax3.set_xlabel("pressure (Ba)")
 ax3.set_ylabel("frequency")
 ax3.legend(loc="best") 
 
-
 #get midpoints and plot "errorbars" in figure 2 
 #create figure 2
 fig2,ax2 = plt.subplots(1,1) 
 mid1 = (v1[:-1] + v1[1:]) / 2 
 mid2 = (v2[:-1] + v2[1:]) / 2 
 mid3 = (v3[:-1] + v3[1:]) / 2 
-print("mids1 shape:",np.shape(mid1))
+print("mids1 shape:",shape(mid1))
 ax2.errorbar(x=mid1,y=b1,yerr=0,fmt='o',capsize=2)
 ax2.errorbar(x=mid2,y=b2,yerr=0,fmt='o',capsize=2)
 ax2.errorbar(x=mid3,y=b3,yerr=0,fmt='o',capsize=2)
+
 #get midpoints for Nc 5+,6+,7+,8+ 
 mid5p1 = (v5p1[:-1] + v5p1[1:]) / 2 
 mid6p1 = (v6p1[:-1] + v6p1[1:]) / 2 
@@ -468,9 +505,9 @@ print("v2:",v2)
 print("b3:",b3)
 print("v3:",v3)
 '''
-indexarray1 = np.where(b1 == b1.max())  
-indexarray2 = np.where(b2 == b2.max()) 
-indexarray3 = np.where(b3 == b3.max()) 
+indexarray1 = where(b1 == b1.max())  
+indexarray2 = where(b2 == b2.max()) 
+indexarray3 = where(b3 == b3.max()) 
 index1 = indexarray1[0] 
 index2 = indexarray2[0] 
 index3 = indexarray3[0] 
@@ -478,12 +515,15 @@ index3 = indexarray3[0]
 v1max = ((v1[index1]+v1[index1+1])/2)
 v2max = ((v2[index2]+v2[index2+1])/2)
 v3max = ((v3[index3]+v3[index3+1])/2)
+'''
 print("kaon greatest frequency:",b1.max(),"at index:",index1,"pressure:",v1max,"Ba")
 print("proton greatest frequency:",b2.max(),"at index:",index2,"pressure:",v2max,"Ba")
 print("pion greatest frequency:",b3.max(),"at index:",index3,"pressure:",v3max,"Ba") 
+'''
 #3 peaks should roughly be in the ratio pion:proton:kaon of 70:24:6
 print("expected pion:proton:kaon = 70:24:6") 
 
-
+#end the timer
+print("%s seconds" % (time.time()-start_time))
 #display the 3 figures
 plt.show()

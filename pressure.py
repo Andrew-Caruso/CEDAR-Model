@@ -15,6 +15,8 @@ from numpy import shape as shape
 from numpy import where as where 
 from numpy import pi as pi 
 from numpy import random as rand 
+from matplotlib.collections import PatchCollection
+from matplotlib.patches import Circle 
 
 #global constants all in CGS 
 start_time = time.time() #start the timer
@@ -62,10 +64,15 @@ p = (75*(1E+9))*factor/c #75 GeV/c to g cm/s momentum
 #pressure goes from vacuum to 5 bar
 #p vs P 
 #keep momentum p constant at 75 GeV 
+
 #off set the aperture (via off set photons) 
 #see photonGeneration fun 
 x_off = 0.1 #cm 
 y_off = 0.1 #cm 
+#smear the photons (slight deviation from the actual radius)
+#see photonGeneration fun 
+sigma = 0.01 #cm std, smearing of the photons  
+#originally 0.1 cm for both offs and 0.01 cm std
 
 #create all the functions
 #radius function 
@@ -115,7 +122,6 @@ def photonGeneration(r):
 	numG = 18 #number of photons to generate on the ring 
 	chart = zeros(8) #index = sector-1  
 	mu = r #mean for normal/gaussian distribution 
-	sigma = 0.01 #cm std, smearing of the photons  
 	#loop through each photon 
 	for i in range(0,numG,1): 
 		phi = rnd.uniform(0,2*pi) #generate random angle
@@ -298,6 +304,8 @@ stat8p_array3 = array([])
 #monte carlo simulation for kaon 
 #use spectrum of momentum NOT random generated momentum, to decrease fluctations in the histograms 
 #for each momentum (i.e. ring's radius)  generate 1E+2 PM detections of 18 photons  
+
+#removed the other for loop and the random pressure in order to do a pressure scan instead
 print("for kaon") 
 #for i in range(0,N,1):
 for P in range(int(P_min),int(P_max),2000):
@@ -350,28 +358,28 @@ for P in range(int(P_min),int(P_max),2000):
 	stat8p2 = 0 #for Nc = 8 
 	if stat == 1: 
 		stat_array2 = append(stat_array2, P)
-		for i in range(0,int(1E+2)):
-			Nc2 = photonGeneration(r) #number of coincidences (see photonGen fun)  
-			stat5p2 = valuesHist5p(Nc2) 
-			stat6p2 = valuesHist6p(Nc2) 
-			stat7p2 = valuesHist7p(Nc2) 
-			stat8p2 = valuesHist8p(Nc2) 
-			if stat5p2 == 1:
-				stat5p_array2 = append(stat5p_array2, P)
-			if stat6p2 == 1:
-				stat6p_array2 = append(stat6p_array2, P)
-			if stat7p2 == 1:
-				stat7p_array2 = append(stat7p_array2, P)
-			if stat8p2 == 1:
-				stat8p_array2 = append(stat8p_array2, P)
-			'''
-			print("iteration: ",i)
-			print("pressure: ",P,"Ba")
-			print("refractive index: ",n) 
-			print("radius: ",r,"cm")
-			print("Nc: ",Nc2)
-			print("stat: ",stat,"\n")
-			'''
+	for i in range(0,int(1E+2)):
+		Nc2 = photonGeneration(r) #number of coincidences (see photonGen fun)  
+		stat5p2 = valuesHist5p(Nc2) 
+		stat6p2 = valuesHist6p(Nc2) 
+		stat7p2 = valuesHist7p(Nc2) 
+		stat8p2 = valuesHist8p(Nc2) 
+		if stat5p2 == 1:
+			stat5p_array2 = append(stat5p_array2, P)
+		if stat6p2 == 1:
+			stat6p_array2 = append(stat6p_array2, P)
+		if stat7p2 == 1:
+			stat7p_array2 = append(stat7p_array2, P)
+		if stat8p2 == 1:
+			stat8p_array2 = append(stat8p_array2, P)
+		'''
+		print("iteration: ",i)
+		print("pressure: ",P,"Ba")
+		print("refractive index: ",n) 
+		print("radius: ",r,"cm")
+		print("Nc: ",Nc2)
+		print("stat: ",stat,"\n")
+		'''
 
 #monte carlo simulation for pion  
 print("for pion") 
@@ -387,28 +395,28 @@ for P in range(int(P_min),int(P_max),2000):
 	stat = check(r,P,mpi,n,r_min,r_max,P_min,P_max)
 	if stat == 1: 
 		stat_array3 = append(stat_array3, P)
-		for i in range(0,int(1E+2)):
-			Nc3 = photonGeneration(r) #number of coincidences (see photonGen fun)  
-			stat5p3 = valuesHist5p(Nc3) 
-			stat6p3 = valuesHist6p(Nc3) 
-			stat7p3 = valuesHist7p(Nc3) 
-			stat8p3 = valuesHist8p(Nc3) 
-			if stat5p3 == 1:
-				stat5p_array3 = append(stat5p_array3, P)
-			if stat6p3 == 1:
-				stat6p_array3 = append(stat6p_array3, P)
-			if stat7p3 == 1:
-				stat7p_array3 = append(stat7p_array3, P)
-			if stat8p3 == 1:
-				stat8p_array3 = append(stat8p_array3, P)
-			'''
-			print("iteration: ",i)
-			print("pressure: ",P,"Ba")
-			print("refractive index: ",n) 
-			print("radius: ",r,"cm")
-			print("Nc: ",Nc3)
-			print("stat: ",stat,"\n")
-			'''
+	for i in range(0,int(1E+2)):
+		Nc3 = photonGeneration(r) #number of coincidences (see photonGen fun)  
+		stat5p3 = valuesHist5p(Nc3) 
+		stat6p3 = valuesHist6p(Nc3) 
+		stat7p3 = valuesHist7p(Nc3) 
+		stat8p3 = valuesHist8p(Nc3) 
+		if stat5p3 == 1:
+			stat5p_array3 = append(stat5p_array3, P)
+		if stat6p3 == 1:
+			stat6p_array3 = append(stat6p_array3, P)
+		if stat7p3 == 1:
+			stat7p_array3 = append(stat7p_array3, P)
+		if stat8p3 == 1:
+			stat8p_array3 = append(stat8p_array3, P)
+		'''
+		print("iteration: ",i)
+		print("pressure: ",P,"Ba")
+		print("refractive index: ",n) 
+		print("radius: ",r,"cm")
+		print("Nc: ",Nc3)
+		print("stat: ",stat,"\n")
+		'''
 
 #create histograms for each particle of
 #valid pressures only (whose generated radius falls within the ring of the diaphram)  
@@ -430,6 +438,7 @@ b3,v3, _ = ax1.hist(stat_array3,bins=num,range=[P_min,P_max],label="pion",color=
 ax1.set_xlabel("pressure (Ba)")
 ax1.set_ylabel("frequency")
 ax1.legend(loc="best") 
+ax1.set_title("Pressure Scan of Particles")
 print("b1 shape:",shape(b1))
 print("v1 shape:",shape(v1))
 '''
@@ -455,6 +464,7 @@ b7p3,v7p3, _ = ax3.hist(stat7p_array3,bins=num,range=[P_min,P_max],color='lime')
 b8p3,v8p3, _ = ax3.hist(stat8p_array3,bins=num,range=[P_min,P_max],color='cyan')
 ax3.set_xlabel("pressure (Ba)")
 ax3.set_ylabel("frequency")
+ax3.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))
 ax3.legend(loc="best") 
 
 #get midpoints and plot "errorbars" in figure 2 
@@ -463,7 +473,7 @@ fig2,ax2 = plt.subplots(1,1)
 mid1 = (v1[:-1] + v1[1:]) / 2 
 mid2 = (v2[:-1] + v2[1:]) / 2 
 mid3 = (v3[:-1] + v3[1:]) / 2 
-print("mids1 shape:",shape(mid1))
+#print("mids1 shape:",shape(mid1))
 ax2.errorbar(x=mid1,y=b1,yerr=0,fmt='o',capsize=2)
 ax2.errorbar(x=mid2,y=b2,yerr=0,fmt='o',capsize=2)
 ax2.errorbar(x=mid3,y=b3,yerr=0,fmt='o',capsize=2)
@@ -497,6 +507,7 @@ ax2.errorbar(x=mid7p3,y=b7p3,yerr=0,fmt='o',capsize=2,color="lime")
 ax2.errorbar(x=mid8p3,y=b8p3,yerr=0,fmt='o',capsize=2,color="cyan")
 
 #find most common value and the count 
+#for figure 1
 '''
 print("b1:",b1)
 print("v1:",v1)
@@ -519,9 +530,56 @@ v3max = ((v3[index3]+v3[index3+1])/2)
 print("kaon greatest frequency:",b1.max(),"at index:",index1,"pressure:",v1max,"Ba")
 print("proton greatest frequency:",b2.max(),"at index:",index2,"pressure:",v2max,"Ba")
 print("pion greatest frequency:",b3.max(),"at index:",index3,"pressure:",v3max,"Ba") 
-'''
 #3 peaks should roughly be in the ratio pion:proton:kaon of 70:24:6
 print("expected pion:proton:kaon = 70:24:6") 
+'''
+
+#find max value for figure 3 
+indexVec5p1 = where(b5p1 == b5p1.max())
+indexVec6p1 = where(b6p1 == b6p1.max()) 
+indexVec7p1 = where(b7p1 == b7p1.max()) 
+indexVec8p1 = where(b8p1 == b8p1.max()) 
+
+indexVec5p2 = where(b5p2 == b5p2.max())
+indexVec6p2 = where(b6p2 == b6p2.max()) 
+indexVec7p2 = where(b7p2 == b7p2.max()) 
+indexVec8p2 = where(b8p2 == b8p2.max()) 
+
+indexVec5p3 = where(b5p3 == b5p3.max())
+indexVec6p3 = where(b6p3 == b6p3.max()) 
+indexVec7p3 = where(b7p3 == b7p3.max()) 
+indexVec8p3 = where(b8p3 == b8p3.max()) 
+
+index5p1 = indexVec5p1[0] 
+index6p1 = indexVec6p1[0]
+index7p1 = indexVec7p1[0] 
+index8p1 = indexVec8p1[0] 
+
+index5p2 = indexVec5p2[0] 
+index6p2 = indexVec6p2[0]
+index7p2 = indexVec7p2[0] 
+index8p2 = indexVec8p2[0] 
+
+index5p3 = indexVec5p3[0] 
+index6p3 = indexVec6p3[0]
+index7p3 = indexVec7p3[0] 
+index8p3 = indexVec8p3[0] 
+
+vmax5p1 = ( ((v5p1[index5p1]+v5p1[index5p1+1]))/2 )
+vmax6p1 = ( ((v6p1[index6p1]+v6p1[index6p1+1]))/2 )
+vmax7p1 = ( ((v7p1[index7p1]+v7p1[index7p1+1]))/2 )
+vmax8p1 = ( ((v8p1[index8p1]+v8p1[index8p1+1]))/2 )
+
+vmax5p2 = ( ((v5p2[index5p2]+v5p2[index5p2+1]))/2 )
+vmax6p2 = ( ((v6p2[index6p2]+v6p2[index6p2+1]))/2 )
+vmax7p2 = ( ((v7p2[index7p2]+v7p2[index7p2+1]))/2 )
+vmax8p2 = ( ((v8p2[index8p2]+v8p2[index8p2+1]))/2 )
+
+vmax5p3 = ( ((v5p3[index5p3]+v5p3[index5p3+1]))/2 )
+vmax6p3 = ( ((v6p3[index6p3]+v6p3[index6p3+1]))/2 )
+vmax7p3 = ( ((v7p3[index7p3]+v7p3[index7p3+1]))/2 )
+vmax8p3 = ( ((v8p3[index8p3]+v8p3[index8p3+1]))/2 )
+
 
 #end the timer
 print("%s seconds" % (time.time()-start_time))

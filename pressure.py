@@ -15,6 +15,7 @@ from numpy import shape as shape
 from numpy import where as where 
 from numpy import pi as pi 
 from numpy import random as rand 
+from numpy import isnan as isnan 
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Circle 
 
@@ -103,7 +104,6 @@ def findPressure(r,m):
 	Pout = (1/(beta*cos(arctan(r/l))) -1 )* P0 / (n0 -1) 
 	return Pout 
 
-#generate 18 photons on a valid ring using 2D and polar coor 
 #valid ring meaning r_min < r < r_min, fits in the aperature 
 #then determine which sector each photon is in and output 
 #wherein cherenkov angle (theta) = polar angle off of the beam axis
@@ -118,10 +118,21 @@ def findPressure(r,m):
 #shifting the aperture in the tranverse xy plane. 
 #Instead of adjusting the actual poisition of the aperture, adjust the photon x and y positions, thus the radius of each photon 
 
+#sectors 1 and 8 = up
+#sectors 4 and 5 = down 
+#sectors 2 and 3 = right
+#sectors 6 and 7 = left 
 def photonGeneration(r): 
 	numG = 18 #number of photons to generate on the ring 
-	chart = zeros(8) #index = sector-1  
+	chart = zeros(8) #index = sector-1, used as binary 0 or 1 
+	#for a PM of the sector detecting 1 or more photons 
+	#from sector 1 (index 0) to sector 8 (index 7)
+	count = zeros(8) #used as number of photons in each sector 
 	mu = r #mean for normal/gaussian distribution 
+	left = 0
+	right = 0
+	up = 0
+	down = 0
 	#loop through each photon 
 	for i in range(0,numG,1): 
 		phi = rnd.uniform(0,2*pi) #generate random angle
@@ -143,39 +154,59 @@ def photonGeneration(r):
 			#print("sector 2") 
 			if chart[1] != 1:
 				chart[1] = 1 
+			count[1] += 1 #increase count of photons in sector 2
 		elif (phi > pi/4 and phi < pi/2):
 			#print("sector 1")
 			if chart[0] != 1:
 				chart[0] = 1	
+			count[0] += 1 #increase count of photons in sector 1
 		elif (phi > pi/2 and phi < 3*pi/4): 
 			#print("sector 8")
 			if chart[7] != 1:
 				chart[7] = 1	
+			count[7] += 1 #increase count of photons in sector 8
 		elif phi > 3*pi/4 and phi < pi:
 			#print("sector 7")
 			if chart[6] != 1:
 				chart[6] = 1	
+			count[6] += 1 #increase count of photons in sector 7
 		elif phi > pi and phi < 5*pi/4:
 			#print("sector 6") 
 			if chart[5] != 1:
 				chart[5] = 1	
+			count[5] += 1 #increase count of photons in sector 6
 		elif phi > 5*pi/4 and phi < 3*pi/2:
 			#print("sector 5") 
 			if chart[4] != 1:
 				chart[4] = 1	
+			count[4] += 1 #increase count of photons in sector 5
 		elif phi > 3*pi/2 and phi < 7*pi/4:
 			#print("sector 4")
 			if chart[3] != 1:
 				chart[3] = 1	
+			count[3] += 1 #increase count of photons in sector 4
 		elif phi > 7*pi/4 and phi < 2*pi: 
 			#print("sector 3") 
 			if chart[2] != 1:
 				chart[2] = 1	
+			count[2] += 1 #increase count of photons in sector 3
 		else:
 			print("no sector") 
 	#print("chart:",chart)
 	totCount = sum(chart) #total number of sectors that made a detection (1 or more photons)
 	#total count is the number of coincidences Nc, number of PMs that coincide with the same detection (recieve photons from same source/particle 
+	up = count[0] + count[7] #sector 1 and 8
+	down = count[3] + count[4] #sector 4 and 5
+	right = count[1] + count[2] #sector 2 and 3
+	left = count[5] + count[6] #sector 6 ad 7 
+	#asummetires
+	A_LR = (left-right) / (left+right)
+	A_UD = (up-down) / (up+down)
+	#only print out if the value is not nan 
+	if isnan(A_LR) != 1 and isnan(A_UD) != 1:
+		print("Number of photons per sector: ",count) 
+		print("A_LR:",A_LR)
+		print("A_UD:",A_UD,"\n")
 	return totCount 
 
 #get color based on the Nc

@@ -16,6 +16,8 @@ from numpy import where as where
 from numpy import pi as pi 
 from numpy import random as rand 
 from numpy import isnan as isnan 
+from numpy import nan as nan 
+from numpy import reshape as reshape
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Circle 
 
@@ -68,12 +70,15 @@ p = (75*(1E+9))*factor/c #75 GeV/c to g cm/s momentum
 
 #off set the aperture (via off set photons) 
 #see photonGeneration fun 
-x_off = 0.1 #cm 
-y_off = 0.1 #cm 
+x_off = 0.14 #cm 
+y_off = 0.0 #cm 
 #smear the photons (slight deviation from the actual radius)
 #see photonGeneration fun 
 sigma = 0.01 #cm std, smearing of the photons  
 #originally 0.1 cm for both offs and 0.01 cm std
+print("x_off:",x_off)
+print("y_off:",y_off)
+print("sigma:",sigma) 
 
 #create all the functions
 #radius function 
@@ -200,14 +205,21 @@ def photonGeneration(r):
 	right = count[1] + count[2] #sector 2 and 3
 	left = count[5] + count[6] #sector 6 ad 7 
 	#asummetires
-	A_LR = (left-right) / (left+right)
-	A_UD = (up-down) / (up+down)
+	return totCount,up,down,left,right 
+
+#get the asymmetries in number of photons in up,down,left,right zones
+def getAsymmetries(up,down,left,right):
 	#only print out if the value is not nan 
-	if isnan(A_LR) != 1 and isnan(A_UD) != 1:
-		print("Number of photons per sector: ",count) 
-		print("A_LR:",A_LR)
-		print("A_UD:",A_UD,"\n")
-	return totCount 
+	if left+right != 0:
+		A_LR = (left-right) / (left+right)
+	if up+down !=0: 
+		A_UD = (up-down) / (up+down)
+	else: 
+		A_LR = 0
+		A_UD = 0
+	print("A_LR:",A_LR)
+	print("A_UD:",A_UD,"\n")
+	return 0 
 
 #get color based on the Nc
 def getColor(Nc):
@@ -261,25 +273,6 @@ def valuesHist8p(Nc):
 	else:
 		boolean = 0
 	return boolean 
-'''
-#filter out the zeros in the bins array b and corresponding values array v 
-#get the midpoint values from an array 
-def filterZerosGetMid(b,v):
-	output = array([[],[]])
-	#output[0] reps b output[1] reps v  
-	indexb = where(b != 0) #get all indices where b is not zero 
-	tempv = v[indexb] #temporary values  
-	print("shape of output[0]",shape(output[0]))
-	print("shape of b[indexb]",shape(b[indexb]))
-	print("shape of output[1]",shape(output[1]))
-	print("shape of tempv",shape(tempv))
-	for i in range(0,len(b[indexb])):
-		output[0] = append(output[0], b[indexb][i]) #new b values omitting the zeros  
-	#get midpoints in tempv 
-	#for i in range(0,len(tempv)):
-		#output[1] = append(output[1], ((tempv[:-1] + tempv[1:]) / 2) )
-	return output  
-'''
 
 #dimensions of ring-like diaphram and aperture 
 #use the radius of the kaon ring, i.e. center the diaphram on the kaon ring 
@@ -331,27 +324,63 @@ stat5p_array3 = array([])
 stat6p_array3 = array([]) 
 stat7p_array3 = array([]) 
 stat8p_array3 = array([]) 
+#empty list the number of photons per iteration for each zone (up,down,left,right) 
+listup1 = []
+listdown1 = []
+listleft1 = []
+listright1 = []
+listup2 = []
+listdown2 = []
+listleft2 = []
+listright2 = []
+listup3 = []
+listdown3 = []
+listleft3 = []
+listright3 = []
+
+#select a single pressure instead of scanning all pressures, do:
+P_select = 1.8E+6 #baryes
+print("P_select:",P_select,"\n") 
 
 #monte carlo simulation for kaon 
 #use spectrum of momentum NOT random generated momentum, to decrease fluctations in the histograms 
 #for each momentum (i.e. ring's radius)  generate 1E+2 PM detections of 18 photons  
-
 #removed the other for loop and the random pressure in order to do a pressure scan instead
 print("for kaon") 
 #for i in range(0,N,1):
 for P in range(int(P_min),int(P_max),2000):
 	#P = rnd.uniform(P_min,P_max)
+	if P != P_select:   
+		continue 
 	n = index(P)
 	r = radius(mka,n) 
+	print("selected pressure radius:",r) 
 	stat = check(r,P,mka,n,r_min,r_max,P_min,P_max)
 	stat5p1 = 0 #for Nc >= 5, stat 5+ 
 	stat6p1 = 0 #for Nc >= 6
 	stat7p1 = 0 #for Nc >= 7
 	stat8p1 = 0 #for Nc = 7 or 7+ 
+	up1 = 0 #number of photons in sectors 1 & 8
+	down1 = 0 #number of photons in sectors 4 & 5
+	left1 = 0 #number of photons in sectors 2 & 3 
+	right1 =0 #number of photons in sectors 6 & 7
+	sumup1 = 0 #total number of photons detected in up zone 
+	sumdown1 = 0
+	sumleft1 = 0 
+	sumright1 = 0 
 	if stat == 1: 
 		stat_array1 = append(stat_array1, P)
-	for i in range(0,int(1E+2)): 
-		Nc1 = photonGeneration(r) #number of coincidences (see photonGen fun)  
+	#for each pressure, generate more rings
+	#originally 1E+2 
+	#generate rings
+	for i in range(0,int(1E+4)): 
+		#number of coincidences (see photonGen fun)  
+		Nc1,up1,down1,left1,right1= photonGeneration(r) 		
+		#add to respective lists 
+		listup1.append(up1)
+		listdown1.append(down1)		
+		listleft1.append(left1) 
+		listright1.append(right1)
 		#print("Nc1:",Nc1)
 		color1 = getColor(Nc1)
 		stat5p1 = valuesHist5p(Nc1) 
@@ -374,12 +403,27 @@ for P in range(int(P_min),int(P_max),2000):
 		print("Nc: ",Nc1)
 		print("stat: ",stat,"\n")
 		'''
+#get the total sums of photons per zone 
+sumup1 = sum(i for i in listup1 if i != nan) 
+sumdown1 = sum(i for i in listdown1 if i != nan) 
+sumleft1 = sum(i for i in listleft1 if i != nan) 
+sumright1 = sum(i for i in listright1 if i != nan) 
+print("up1",sumup1) 
+print("down1",sumdown1)
+print("left1",sumleft1)
+print("right1",sumright1)
+getAsymmetries(sumup1,sumdown1,sumleft1,sumright1) 
+
+
+
 
 #monte carlo simulation for proton  
 print("for proton") 
 #for i in range(0,N,1):
 for P in range(int(P_min),int(P_max),2000):
 	#P = rnd.uniform(P_min,P_max)
+	if P != P_select:   
+		continue 
 	n = index(P)
 	r = radius(mpr,n) 
 	stat = check(r,P,mpr,n,r_min,r_max,P_min,P_max)
@@ -387,10 +431,24 @@ for P in range(int(P_min),int(P_max),2000):
 	stat6p2 = 0 #for Nc >= 6
 	stat7p2 = 0 #for Nc >= 7
 	stat8p2 = 0 #for Nc = 8 
+	up2 = 0 #number of photons in sectors 1 & 8
+	down2 = 0 #number of photons in sectors 4 & 5
+	left2 = 0 #number of photons in sectors 2 & 3 
+	right2 =0 #number of photons in sectors 6 & 7
+	sumup2 = 0 #total number of photons detected in up zone 
+	sumdown2 = 0
+	sumleft2 = 0 
+	sumright2 = 0 
 	if stat == 1: 
 		stat_array2 = append(stat_array2, P)
 	for i in range(0,int(1E+2)):
-		Nc2 = photonGeneration(r) #number of coincidences (see photonGen fun)  
+		#number of coincidences (see photonGen fun)  
+		Nc2,up2,down2,left2,right2= photonGeneration(r) 		
+		#add to respective lists 
+		listup2.append(up2)
+		listdown2.append(down2)		
+		listleft2.append(left2) 
+		listright2.append(right2)
 		stat5p2 = valuesHist5p(Nc2) 
 		stat6p2 = valuesHist6p(Nc2) 
 		stat7p2 = valuesHist7p(Nc2) 
@@ -411,12 +469,27 @@ for P in range(int(P_min),int(P_max),2000):
 		print("Nc: ",Nc2)
 		print("stat: ",stat,"\n")
 		'''
+#get the total sums of photons per zone 
+sumup2 = sum(i for i in listup2 if i != nan) 
+sumdown2 = sum(i for i in listdown2 if i != nan) 
+sumleft2 = sum(i for i in listleft2 if i != nan) 
+sumright2 = sum(i for i in listright2 if i != nan) 
+print("up2",sumup2) 
+print("down2",sumdown2)
+print("left2",sumleft2)
+print("right2",sumright2)
+getAsymmetries(sumup2,sumdown2,sumleft2,sumright2) 
+
+
+
 
 #monte carlo simulation for pion  
 print("for pion") 
 #for i in range(0,N,1):
 for P in range(int(P_min),int(P_max),2000):
 	#P = rnd.uniform(P_min,P_max)
+	if P != P_select:
+		continue 
 	n = index(P)
 	r = radius(mpi,n) 
 	stat5p3 = 0 #for Nc >= 5, stat 5+ 
@@ -424,10 +497,24 @@ for P in range(int(P_min),int(P_max),2000):
 	stat7p3 = 0 #for Nc >= 7
 	stat8p3 = 0 #for Nc = 8 
 	stat = check(r,P,mpi,n,r_min,r_max,P_min,P_max)
+	up3 = 0 #number of photons in sectors 1 & 8
+	down3 = 0 #number of photons in sectors 4 & 5
+	left3 = 0 #number of photons in sectors 2 & 3 
+	right3 =0 #number of photons in sectors 6 & 7
+	sumup1 = 0 #total number of photons detected in up zone 
+	sumdown1 = 0
+	sumleft1 = 0 
+	sumright1 = 0 
 	if stat == 1: 
 		stat_array3 = append(stat_array3, P)
 	for i in range(0,int(1E+2)):
-		Nc3 = photonGeneration(r) #number of coincidences (see photonGen fun)  
+		#number of coincidences (see photonGen fun)  
+		Nc3,up3,down3,left3,right3= photonGeneration(r) 		
+		#add to respective lists 
+		listup3.append(up3)
+		listdown3.append(down3)		
+		listleft3.append(left3) 
+		listright3.append(right3)
 		stat5p3 = valuesHist5p(Nc3) 
 		stat6p3 = valuesHist6p(Nc3) 
 		stat7p3 = valuesHist7p(Nc3) 
@@ -448,6 +535,19 @@ for P in range(int(P_min),int(P_max),2000):
 		print("Nc: ",Nc3)
 		print("stat: ",stat,"\n")
 		'''
+#get the total sums of photons per zone 
+sumup3 = sum(i for i in listup3 if i != nan) 
+sumdown3 = sum(i for i in listdown3 if i != nan) 
+sumleft3 = sum(i for i in listleft3 if i != nan) 
+sumright3 = sum(i for i in listright3 if i != nan) 
+print("up3",sumup3) 
+print("down3",sumdown3)
+print("left3",sumleft3)
+print("right3",sumright3)
+getAsymmetries(sumup3,sumdown3,sumleft3,sumright3) 
+
+
+
 
 #create histograms for each particle of
 #valid pressures only (whose generated radius falls within the ring of the diaphram)  
@@ -615,4 +715,4 @@ vmax8p3 = ( ((v8p3[index8p3]+v8p3[index8p3+1]))/2 )
 #end the timer
 print("%s seconds" % (time.time()-start_time))
 #display the 3 figures
-plt.show()
+#plt.show()

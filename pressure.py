@@ -18,10 +18,26 @@ from numpy import random as rand
 from numpy import isnan as isnan 
 from numpy import nan as nan 
 from numpy import reshape as reshape
-from matplotlib.collections import PatchCollection
-from matplotlib.patches import Circle 
+from matplotlib.patches import Circle as circle 
+from matplotlib.patches import Wedge as wedge 
+from matplotlib.lines import Line2D as line
+
 
 #global constants all in CGS 
+#off set the aperture (via off set photons) 
+#see photonGeneration fun 
+x_off = 0.15 #cm 
+y_off = 0.0 #cm 
+P_select = 1.8E+6 #baryes printed later in the code right before kaon rings are generated
+#smear the photons (slight deviation from the actual radius)
+#see photonGeneration fun 
+sigma = 0.05 #cm std, smearing of the photons  
+#originally 0.1 cm for both offs and 0.01 cm std
+print("x_off:",x_off,"cm")
+print("y_off:",y_off,"cm")
+print("sigma:",sigma,"cm") 
+
+
 start_time = time.time() #start the timer
 radiator = "N2" 
 print("radiator:",radiator)
@@ -68,17 +84,6 @@ p = (75*(1E+9))*factor/c #75 GeV/c to g cm/s momentum
 #p vs P 
 #keep momentum p constant at 75 GeV 
 
-#off set the aperture (via off set photons) 
-#see photonGeneration fun 
-x_off = 0.14 #cm 
-y_off = 0.0 #cm 
-#smear the photons (slight deviation from the actual radius)
-#see photonGeneration fun 
-sigma = 0.01 #cm std, smearing of the photons  
-#originally 0.1 cm for both offs and 0.01 cm std
-print("x_off:",x_off)
-print("y_off:",y_off)
-print("sigma:",sigma) 
 
 #create all the functions
 #radius function 
@@ -109,7 +114,7 @@ def findPressure(r,m):
 	Pout = (1/(beta*cos(arctan(r/l))) -1 )* P0 / (n0 -1) 
 	return Pout 
 
-#valid ring meaning r_min < r < r_min, fits in the aperature 
+#valid ring meaning r_min < r < r_min, fits in the aperture 
 #then determine which sector each photon is in and output 
 #wherein cherenkov angle (theta) = polar angle off of the beam axis
 #phi = azimuthal angle off of x axis, in the transverse plane in respect to beam 
@@ -204,10 +209,16 @@ def photonGeneration(r):
 	down = count[3] + count[4] #sector 4 and 5
 	right = count[1] + count[2] #sector 2 and 3
 	left = count[5] + count[6] #sector 6 ad 7 
-	#asummetires
+	#asymmetires
 	return totCount,up,down,left,right 
 
 #get the asymmetries in number of photons in up,down,left,right zones
+#asymmetries max and min values are 1 and -1 
+#technical asymmetry denotes asymmetry index
+#where asymmetry index for up/down is:
+#asymmetry index = count up - count down / (up count + down count)
+#if up >> down then index = 1
+#if down >> up then index = -1
 def getAsymmetries(up,down,left,right):
 	#only print out if the value is not nan 
 	if left+right != 0:
@@ -279,7 +290,7 @@ def valuesHist8p(Nc):
 #with deviations of 0.9 mm from the radius, thus a thickness of 1.8 mm
 #with deviations of 0.09 cm from the radius, thus a thickness of 0.18 cm
 #NOTE: use the kaon ring at 1.75 bar and adjust it by 0.9 mm to create the 
-#aperature of the ring-like diaphram 
+#aperture of the ring-like diaphram 
 #N2 gas at 1.75 bar, find n and r
 P_N2 = 1.75E+6 #Ba or 1.75 bar of N2 gas 
 n = index(P_N2)  
@@ -339,8 +350,10 @@ listleft3 = []
 listright3 = []
 
 #select a single pressure instead of scanning all pressures, do:
-P_select = 1.8E+6 #baryes
-print("P_select:",P_select,"\n") 
+#was 1.8E+6 or 1.75E+6 baryes
+#see earliest lines  
+print("P_select:",P_select,"Ba\n") 
+
 
 #monte carlo simulation for kaon 
 #use spectrum of momentum NOT random generated momentum, to decrease fluctations in the histograms 
@@ -368,6 +381,11 @@ for P in range(int(P_min),int(P_max),2000):
 	sumdown1 = 0
 	sumleft1 = 0 
 	sumright1 = 0 
+	totalcount1 = 0
+	ratioup1 = 0
+	ratiodown1 = 0
+	ratioleft1 = 0
+	ratioright1 = 0
 	if stat == 1: 
 		stat_array1 = append(stat_array1, P)
 	#for each pressure, generate more rings
@@ -408,12 +426,24 @@ sumup1 = sum(i for i in listup1 if i != nan)
 sumdown1 = sum(i for i in listdown1 if i != nan) 
 sumleft1 = sum(i for i in listleft1 if i != nan) 
 sumright1 = sum(i for i in listright1 if i != nan) 
-print("up1",sumup1) 
-print("down1",sumdown1)
-print("left1",sumleft1)
-print("right1",sumright1)
+totalcount1 = sumup1 + sumdown1 + sumleft1 + sumright1 
+if totalcount1 == 0:
+	totalcount1 = 1
+	#to handel division by zero
+ratioup1 = sumup1 / totalcount1 
+ratiodown1 = sumdown1 / totalcount1 
+ratioleft1 = sumleft1 / totalcount1 
+ratioright1 = sumright1 / totalcount1 
+print("up",sumup1) 
+print("down",sumdown1)
+print("left",sumleft1)
+print("right",sumright1)
+print("up ratio:",ratioup1)
+print("down ratio:",ratiodown1)
+print("left ratio:",ratioleft1)
+print("right ratio:",ratioright1)
 getAsymmetries(sumup1,sumdown1,sumleft1,sumright1) 
-
+kaonring = circle((0,0),r-5,fill=False,color="tab:blue",label="kaon",alpha=1)
 
 
 
@@ -426,6 +456,7 @@ for P in range(int(P_min),int(P_max),2000):
 		continue 
 	n = index(P)
 	r = radius(mpr,n) 
+	print("selected pressure radius:",r)
 	stat = check(r,P,mpr,n,r_min,r_max,P_min,P_max)
 	stat5p2 = 0 #for Nc >= 5, stat 5+ 
 	stat6p2 = 0 #for Nc >= 6
@@ -439,6 +470,11 @@ for P in range(int(P_min),int(P_max),2000):
 	sumdown2 = 0
 	sumleft2 = 0 
 	sumright2 = 0 
+	totalcount2 = 0
+	ratioup2 = 0
+	ratiodown2 = 0
+	ratioleft2 = 0
+	ratioright2 = 0
 	if stat == 1: 
 		stat_array2 = append(stat_array2, P)
 	for i in range(0,int(1E+2)):
@@ -474,12 +510,24 @@ sumup2 = sum(i for i in listup2 if i != nan)
 sumdown2 = sum(i for i in listdown2 if i != nan) 
 sumleft2 = sum(i for i in listleft2 if i != nan) 
 sumright2 = sum(i for i in listright2 if i != nan) 
-print("up2",sumup2) 
-print("down2",sumdown2)
-print("left2",sumleft2)
-print("right2",sumright2)
+totalcount2 = sumup2 + sumdown2 + sumleft2 + sumright2 
+if totalcount2 == 0:
+	totalcount2 = 1
+	#to handel division by zero
+ratioup2 = sumup2 / totalcount2 
+ratiodown2 = sumdown2 / totalcount2 
+ratioleft2 = sumleft2 / totalcount2 
+ratioright2 = sumright2 / totalcount2 
+print("up",sumup2) 
+print("down",sumdown2)
+print("left",sumleft2)
+print("right",sumright2)
+print("up ratio:",ratioup2)
+print("down ratio:",ratiodown2)
+print("left ratio:",ratioleft2)
+print("right ratio:",ratioright2)
 getAsymmetries(sumup2,sumdown2,sumleft2,sumright2) 
-
+protonring = circle((0,0),r-5,fill=False,color="tab:orange",label="proton",alpha=1)
 
 
 
@@ -492,6 +540,7 @@ for P in range(int(P_min),int(P_max),2000):
 		continue 
 	n = index(P)
 	r = radius(mpi,n) 
+	print("selected pressure radius:",r)
 	stat5p3 = 0 #for Nc >= 5, stat 5+ 
 	stat6p3 = 0 #for Nc >= 6
 	stat7p3 = 0 #for Nc >= 7
@@ -501,10 +550,15 @@ for P in range(int(P_min),int(P_max),2000):
 	down3 = 0 #number of photons in sectors 4 & 5
 	left3 = 0 #number of photons in sectors 2 & 3 
 	right3 =0 #number of photons in sectors 6 & 7
-	sumup1 = 0 #total number of photons detected in up zone 
-	sumdown1 = 0
-	sumleft1 = 0 
-	sumright1 = 0 
+	sumup3 = 0 #total number of photons detected in up zone 
+	sumdown3 = 0
+	sumleft3 = 0 
+	sumright3 = 0 
+	totalcount3 = 0
+	ratioup3 = 0
+	ratiodown3 = 0
+	ratioleft3 = 0
+	ratioright3 = 0
 	if stat == 1: 
 		stat_array3 = append(stat_array3, P)
 	for i in range(0,int(1E+2)):
@@ -540,13 +594,24 @@ sumup3 = sum(i for i in listup3 if i != nan)
 sumdown3 = sum(i for i in listdown3 if i != nan) 
 sumleft3 = sum(i for i in listleft3 if i != nan) 
 sumright3 = sum(i for i in listright3 if i != nan) 
-print("up3",sumup3) 
-print("down3",sumdown3)
-print("left3",sumleft3)
-print("right3",sumright3)
+totalcount3 = sumup3 + sumdown3 + sumleft3 + sumright3 
+if totalcount3 == 0:
+	totalcount3 = 1
+	#to handel division by zero
+ratioup3 = sumup3 / totalcount3 
+ratiodown3 = sumdown3 / totalcount3 
+ratioleft3 = sumleft3 / totalcount3 
+ratioright3 = sumright3 / totalcount3 
+print("up",sumup3) 
+print("down",sumdown3)
+print("left",sumleft3)
+print("right",sumright3)
+print("up ratio:",ratioup3)
+print("down ratio:",ratiodown3)
+print("left ratio:",ratioleft3)
+print("right ratio:",ratioright3)
 getAsymmetries(sumup3,sumdown3,sumleft3,sumright3) 
-
-
+pionring = circle((0,0),r-5,fill=False,color="tab:green",label="pion",alpha=1)
 
 
 #create histograms for each particle of
@@ -711,8 +776,76 @@ vmax6p3 = ( ((v6p3[index6p3]+v6p3[index6p3+1]))/2 )
 vmax7p3 = ( ((v7p3[index7p3]+v7p3[index7p3+1]))/2 )
 vmax8p3 = ( ((v8p3[index8p3]+v8p3[index8p3+1]))/2 )
 
+#create wedges of the zones for rings graph  
+#the ring-like (annulus) aperture is off set by negative offset x and y
+#because the offset moves the photons' rings instead of moving the actual aperture position 
+#so essentially the aperture is shifted by -off_x and -off_y 
+maxring = circle((-x_off,-y_off),r_max-5,fill=False,color="black",label="ringlike aperture",alpha=1)
+minring = circle((-x_off,-y_off),r_min-5,fill=False,color="black",alpha=1)
+
+#NOTE: all radii for fig4 have 5 cm removed to make scaling better for visual
+#start of fig4 (for single pressure, NOT for pressure scan or monte carlo) 
+#create a figure for graphing the rings 
+fig4,ax4 = plt.subplots(1,1) 
+originPoint= circle((0,0),0.05,fill=True,color="black",alpha=1)
+#plot borders to segregate the sectors 
+length = int(r_max)-3
+xpos = [-length,length]
+ypos = [-length,length]
+xneg = [length,-length]
+yneg = [-length,length] 
+xhor = [-length,length]
+yhor = [0,0]
+xver = [0,0]
+yver = [-length,length]
+ax4.plot(xpos,ypos,linestyle="dashed",color="black") 
+ax4.plot(xneg,yneg,linestyle="dashed",color="black") 
+ax4.plot(xhor,yhor,linestyle="dashed",color="black") 
+ax4.plot(xver,yver,linestyle="dashed",color="black") 
+#create wedges (sectors of left right up and down)
+rightwedge = wedge((0,0),length/4,-45,45,width=None,color="red",label="right",alpha=0.2)
+leftwedge = wedge((0,0),length/4,135,225,width=None,color="green",label="left",alpha=0.2)
+upwedge = wedge((0,0),length/4,45,135,width=None,color="blue",label="up",alpha=0.2)
+downwedge = wedge((0,0),length/4,225,315,width=None,color="orange",label="down",alpha=0.2)
+#label each sector
+#by default text is written from the upper right of each text position point 
+#horizontal alignment (ha) = center, right, left
+#center on the point, right of the point, or left of the point, horizontally  
+#vertical alignment = center, top, bottom, baseline, center_baseline
+#center on the point, top of point, bottom of point vertically 
+#baseline means the bottom of text is on where the center point is vertically
+#center)baseline means slightly lower than center point 
+#ax4.set_anchor("N") 
+ax4.text(length/3,length/length,"sector 2",va="center",ha="left",rotation=0)
+ax4.text(length/3,-length/length,"sector 3",va="center",ha="left",rotation=0)
+ax4.text(-length/3,length/length,"sector 7",va="center",ha="right",rotation=0)
+ax4.text(-length/3,-length/length,"sector 6",va="center",ha="right",rotation=0)
+ax4.text(length/4,length-length*0.55,"sector 1",va="center",ha="right",rotation=0)
+ax4.text(-length/4,length-length*0.55,"sector 8",va="center",ha="left",rotation=0)
+ax4.text(-length/4,-length+length*0.55,"sector 5",va="center",ha="left",rotation=0)
+ax4.text(length/4,-length+length*0.55,"sector 4",va="center",ha="right",rotation=0)
+#add all the patches (or shape, i.e. polygon, circle, wedge, etc) 
+ax4.add_patch(originPoint)
+ax4.add_patch(kaonring)
+ax4.add_patch(protonring)
+ax4.add_patch(pionring)
+ax4.add_patch(rightwedge)
+ax4.add_patch(leftwedge)
+ax4.add_patch(upwedge)
+ax4.add_patch(downwedge)
+ax4.add_patch(maxring)
+ax4.add_patch(minring)
+#edit the axis
+ax4.set_xscale("linear") 
+ax4.set_yscale("linear")
+ax4.set_ylabel("y in cm")
+ax4.set_xlabel("x in cm")
+ax4.set_ylim(ymin=-length,ymax=length)
+ax4.set_xlim(xmin=-length,xmax=length)
+ax4.legend(loc="best", prop={'size':7}) 
+#end of fig4
 
 #end the timer
 print("%s seconds" % (time.time()-start_time))
-#display the 3 figures
-#plt.show()
+#display the 4 figures
+plt.show()

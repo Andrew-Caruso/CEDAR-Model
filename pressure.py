@@ -26,8 +26,10 @@ from matplotlib.lines import Line2D as line
 #global constants all in CGS 
 #off set the aperture (via off set photons) 
 #see photonGeneration fun 
-x_off = 0.15 #cm 
+x_off = 0.4 #cm 
 y_off = 0.0 #cm 
+#NOTE: the x_off set in the photons = - x_off set of the actual aperature
+#if photons are shifted left the aperature essentially was shifted right 
 P_select = 1.8E+6 #baryes printed later in the code right before kaon rings are generated
 #smear the photons (slight deviation from the actual radius)
 #see photonGeneration fun 

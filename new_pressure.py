@@ -19,6 +19,7 @@ from numpy import isnan as isnan
 from numpy import nan as nan 
 from numpy import reshape as reshape
 from numpy import abs as abs 
+from numpy import arange as arange 
 from matplotlib.patches import Circle as circle 
 from matplotlib.patches import Wedge as wedge 
 from matplotlib.lines import Line2D as line
@@ -196,28 +197,29 @@ def valuesHist8p(Nc):
 #to print kaon, proton, or pion 
 def printing(number):
 	if number == 1:
-		print("for kaon")
+		print("\tfor kaon")
 	elif number == 2:
-		print("for proton")
+		print("\tfor proton")
 	else:
-		print("for pion")
+		print("\tfor pion")
 
 #pressure scan 
-def pressureScan(determiner,stat_array,mass,numRings,stat5p_array,stat6p_array,stat7p_array,stat8p_array):
+def pressureScan(determiner,statvec,mass,numRings,stat5pvec,stat6pvec,stat7pvec,stat8pvec):
 	printing(determiner)
-	for P in range(P_min,P_max,NumPress):
+	for P in bins:  
 		#initialization per pressure 
 		stat5p = 0 #for Nc >= 5 stat 5+ 
 		stat6p = 0 #for Nc >= 6 stat 6+
 		stat7p = 0 #for Nc >= 7 stat 7+
 		stat8p = 0 #for Nc = 8 stat 8 
 		n = index(P)
-		r = radius(mka,n) 
+		r = radius(mass,n) 
 		#check if radius is within constraints
-		stat = check(r,P,mka,n,r_min,r_max,P_min,P_max)
-		#store the pressures if true  
+		stat = check(r,P,mass,n,r_min,r_max,P_min,P_max)
+		#store frequencies of the pressures for the histogram values array
+		statindex = int((int(P) - P_min) / step)
 		if stat == 1: 
-			stat_array = append(stat_array, P)
+			statvec[statindex] += 1
 		#for every pressure generate photons (more rings)
 		#all radii are used because off set of aperture and smearing of particle rings
 		#allows for certain invalid radii to still be inside the aperture to some degree 
@@ -228,15 +230,19 @@ def pressureScan(determiner,stat_array,mass,numRings,stat5p_array,stat6p_array,s
 			stat7p = valuesHist7p(Nc) 
 			stat8p = valuesHist8p(Nc) 
 			if stat5p == 1:
-				stat5p_array = append(stat5p_array, P)
+				stat5pvec[statindex] += 1
 			if stat6p == 1:
-				stat6p_array = append(stat6p_array, P)
+				stat6pvec[statindex] += 1
 			if stat7p == 1:
-				stat7p_array = append(stat7p_array, P)
+				stat7pvec[statindex] += 1
 			if stat8p == 1:
-				stat8p_array = append(stat8p_array, P)
-	print(stat_array)
-	return stat_array,stat5p_array,stat6p_array,stat7p_array,stat8p_array 
+				stat8pvec[statindex] += 1
+	'''
+		#testing list comprehension instead of for loop
+	statvec = [P for P in range(P_min,P_max,NumPress) if check(radius(mass,n),P,mass,index(P),r_min,r_max,P_min,P_max) == 1]
+	stat5pvec = [P for P in range(P_min,P_max,NumPress) for i in range(0,numRings) if valuesHist5p(photonGeneration(r,mass)[0]) ==1]
+	'''
+	return statvec,stat5pvec,stat6pvec,stat7pvec,stat8pvec
 
 #pressure selection for alignment (rings graph)
 def pressureSelection(determiner,mass,numRings,hue,name): 
@@ -259,8 +265,8 @@ def pressureSelection(determiner,mass,numRings,hue,name):
 		left = 0
 		right = 0
 		totalcount = 0
-		print(n)
 		r = radius(mass,n)
+		print("radius:",r,"cm")
 		for i in range(0,numRings):
 			Nc,up,down,left,right = photonGeneration(r,mass) 		
 			sumup += up
@@ -300,9 +306,9 @@ P_select = 1.8E+6 #baryes the selected pressure
 sigma = 0.01 #cm smearing of photons per particle ring
 T = 293 #K 
 l = 300 #cm or 3m distance of cone 
-NumPress = int(2E+3) #number of pressures to generate for the pressure scan
-doScan = 0 #1 means do pressure scan while 0 means do pressure select
-useN2 = 1 #1 means use N2 gas while 0 means use H2 gas  
+NumPress = int(2E+2) #number of pressures to generate for the pressure scan
+doScan = 1 #1 means do pressure scan while 0 means do pressure select
+useN2 = 0 #1 means use N2 gas while 0 means use H2 gas  
 
 	#declare fixed parameters 
 P0 = 1E+6 #baryes 1E+5 Pa 1 bar  
@@ -326,7 +332,7 @@ num2 = int(24E+2) #number of proton rings to generate per pressure in pressure s
 num3 = int(70E+2) #number of pion rings to generate per pressure in pressure scan
 #pressures for each gas to set the size of the ring-like aperture 
 P_N2 = 1.75E+6 #baryes 1.75 bar of N2 gas 
-P_H2 = 0 #baryes 0 bar of H2 gas 
+P_H2 = 3.8E+6 #baryes 3.8 bar of H2 gas 
 dev = 0.09 #cm deviation from kaon radius to calculate the size of ring-like aperture 
 name1 = "kaon"
 name2 = "proton"
@@ -343,34 +349,34 @@ r = 0 #radius of ring
 stat1 = 0 #boolean that is either 1 or 0 depending if the ring is in the boundary or not respectively
 stat2 = 0 
 stat3 = 0
-#create empty arrays for the histograms 
-#array of P list
-vec1 = array([]) #empty 
-vec2 = array([]) #empty 
-vec3 = array([]) #empty 
-#array of Nc 5+, 6+, 7+, 8 
+#create zeros numpy arrays for the histograms 
+#array of frequencies of pressures for each particle  
+vec1 = zeros(NumPress) 
+vec2 = zeros(NumPress) 
+vec3 = zeros(NumPress) 
+#array of Nc 5+, 6+, 7+, 8 for each particle  
 #Nc means number of coincidences 
-vec5p1 = array([]) 
-vec6p1 = array([]) 
-vec7p1 = array([]) 
-vec8p1 = array([]) 
-vec5p2 = array([]) 
-vec6p2 = array([]) 
-vec7p2 = array([]) 
-vec8p2 = array([]) 
-vec5p3 = array([]) 
-vec6p3 = array([]) 
-vec7p3 = array([]) 
-vec8p3 = array([]) 
+vec5p1 = zeros(NumPress) 
+vec6p1 = zeros(NumPress) 
+vec7p1 = zeros(NumPress) 
+vec8p1 = zeros(NumPress) 
+vec5p2 = zeros(NumPress) 
+vec6p2 = zeros(NumPress) 
+vec7p2 = zeros(NumPress) 
+vec8p2 = zeros(NumPress) 
+vec5p3 = zeros(NumPress) 
+vec6p3 = zeros(NumPress) 
+vec7p3 = zeros(NumPress) 
+vec8p3 = zeros(NumPress) 
 
     #print the unfixed parameters
-print("\nParameters:")
+print("\n\tParameters:")
 print("temperature:",T,"K")
 print("length:",l,"cm")
 print("x_off:",x_off,"cm")
 print("y_off:",y_off,"cm")
 print("sigma:",sigma,"cm") 
-print("number of pressures for each scan:",NumPress)
+print("number of steps:",NumPress)
 print("selected pressure:",P_select/1E+6,"bar")
 
 	#set parameters according to chosen gas 
@@ -389,8 +395,9 @@ if useN2 == 1:
 	r_max= r_kaon + dev #maximum radius of aperture 
 	apertureSize = r_max - r_min 
 	#set the max and min pressures for the scan 
-	P_max = int(2E+6) #baryes 2 bar 
-	P_min = int(1.6E+6) #baryes 1.6 bar
+	P_max = 2000000 #baryes 2 bar 
+	P_min = 1600000 #baryes 1.6 bar
+	step = (P_max - P_min) / NumPress 
 
 elif useN2 == 0:
 	#for H2 gas 
@@ -407,15 +414,20 @@ elif useN2 == 0:
 	r_max= r_kaon + dev #maximum radius of aperture 
 	apertureSize = r_max - r_min 
     #set the max and min pressures for the scan 
-	P_max = 4.2E+6 #baryes 4.2 bar 
-	P_min = 3.55E+6 #baryes 3.55 bar
+	P_max = int(4.3E+6) #baryes 4.2 bar 
+	P_min = int(3.55E+6) #baryes 3.55 bar
+	step = (P_max - P_min) / NumPress 
+
+#create bins array for all histograms
+bins = arange(P_min,P_max,step) 
 
 	#print the new parameters 
+print("step size:",step)
 print("r_min:",r_min,"cm")
 print("r_max:",r_max,"cm")
+print("aperture size:",apertureSize,"cm")
 print("P_min: ",P_min/1E+6,"bar")
-print("P_max: ",P_max/1E+6,"bar")
-print("aperture size:",apertureSize,"cm\n")
+print("P_max: ",P_max/1E+6,"bar\n")
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -429,17 +441,113 @@ print("aperture size:",apertureSize,"cm\n")
 
 	#perform the pressure scan
 if doScan == 1:
-	print("Performing Pressure Scan:\n")
+	print("Performing Pressure Scan:")
 	vec1,vec5p1,vec6p1,vec7p1,vec8p1= pressureScan(1,vec1,mka,num1,vec5p1,vec6p1,vec7p1,vec8p1)
 	vec2,vec5p2,vec6p2,vec7p2,vec8p2= pressureScan(2,vec2,mpr,num2,vec5p2,vec6p2,vec7p2,vec8p2)
-	vec3,vec5p3,vec6p3,vec7p3,vec8p3= pressureScan(3,vec3,mpr,num3,vec5p3,vec6p3,vec7p3,vec8p3)
+	vec3,vec5p3,vec6p3,vec7p3,vec8p3= pressureScan(3,vec3,mpi,num3,vec5p3,vec6p3,vec7p3,vec8p3)
+	#create the first histogram 
+	fig1, ax1 = plt.subplots(1,1)
+	ax1.bar(bins,vec1,width=step,label=name1,color=color1,align='edge')
+	ax1.bar(bins,vec2,width=step,label=name2,color=color2,align='edge')
+	ax1.bar(bins,vec3,width=step,label=name3,color=color3,align='edge')
+	#b are bins, v are values of momentum marking the start and end of each bin, and _ are patches (ignored) 
+	ax1.set_xlabel("pressure (Ba)")
+	ax1.set_ylabel("frequency")
+	ax1.legend(loc="best") 
+	ax1.set_title("Pressure Scan of Particles")
+	'''
+	#create the second histogram 
+	#create histograms for Nc 5+,6+,7+,8+ for each particle 
+	fig3,ax3 = plt.subplots(1,1) 
+	b5p1,v5p1, _ = ax3.bar(vec5p1,bins=numBins,range=[P_min,P_max],label="5+",color='magenta')
+	b6p1,v6p1, _ = ax3.bar(vec6p1,bins=numBins,range=[P_min,P_max],label="6+",color='darkred')
+	b7p1,v7p1, _ = ax3.bar(vec7p1,bins=numBins,range=[P_min,P_max],label="7+",color='lime')
+	b8p1,v8p1, _ = ax3.bar(vec8p1,bins=numBins,range=[P_min,P_max],label="8",color='cyan')
+	b5p2,v5p2, _ = ax3.bar(vec5p2,bins=numBins,range=[P_min,P_max])
+	b6p2,v6p2, _ = ax3.bar(vec6p2,bins=numBins,range=[P_min,P_max])
+	b7p2,v7p2, _ = ax3.bar(vec7p2,bins=numBins,range=[P_min,P_max])
+	b8p2,v8p2, _ = ax3.bar(vec8p2,bins=numBins,range=[P_min,P_max])
+	b5p3,v5p3, _ = ax3.bar(vec5p3,bins=numBins,range=[P_min,P_max])
+	b6p3,v6p3, _ = ax3.bar(vec6p3,bins=numBins,range=[P_min,P_max])
+	b7p3,v7p3, _ = ax3.bar(vec7p3,bins=numBins,range=[P_min,P_max])
+	b8p3,v8p3, _ = ax3.bar(vec8p3,bins=numBins,range=[P_min,P_max])
+	ax3.set_xlabel("pressure (Ba)")
+	ax3.set_ylabel("frequency")
+	ax3.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))
+	'''
+	ax1.legend(loc="best") 
 
 	#perform the selected pressure alignment (rings graph)
 elif doScan == 0:
-	print("Performing Pressure Selection:\n")
+	print("Performing Pressure Selection:")
 	kaonring = pressureSelection(1,mka,num1,color1,name1)
-	protonring = pressureSelection(2,mpr,num2,color1,name2)
-	pionring = pressureSelection(3,mpi,num3,color1,name3)
+	protonring = pressureSelection(2,mpr,num2,color2,name2)
+	pionring = pressureSelection(3,mpi,num3,color3,name3)
+	#create the rings graph
+	#NOTE: all radii for fig4 have 5 cm removed to make scaling better for visual
+	#start of fig4 (for single pressure, NOT for pressure scan or monte carlo) 
+	fig4,ax4 = plt.subplots(1,1) 
+	originPoint= circle((0,0),0.05,fill=True,color="black",alpha=1)
+	maxring = circle((-x_off,-y_off),r_max-5,fill=False,color="black",label="ringlike aperture",alpha=1)
+	minring = circle((-x_off,-y_off),r_min-5,fill=False,color="black",alpha=1)
+	#plot borders to segregate the sectors 
+	length = int(r_max)-3
+	xpos = [-length,length]
+	ypos = [-length,length]
+	xneg = [length,-length]
+	yneg = [-length,length] 
+	xhor = [-length,length]
+	yhor = [0,0]
+	xver = [0,0]
+	yver = [-length,length]
+	ax4.plot(xpos,ypos,linestyle="dashed",color="black") 
+	ax4.plot(xneg,yneg,linestyle="dashed",color="black") 
+	ax4.plot(xhor,yhor,linestyle="dashed",color="black") 
+	ax4.plot(xver,yver,linestyle="dashed",color="black") 
+	#create wedges (sectors of left right up and down)
+	rightwedge = wedge((0,0),length/4,-45,45,width=None,color="red",label="right",alpha=0.2)
+	leftwedge = wedge((0,0),length/4,135,225,width=None,color="green",label="left",alpha=0.2)
+	upwedge = wedge((0,0),length/4,45,135,width=None,color="blue",label="up",alpha=0.2)
+	downwedge = wedge((0,0),length/4,225,315,width=None,color="orange",label="down",alpha=0.2)
+	#label each sector
+	#by default text is written from the upper right of each text position point 
+	#horizontal alignment (ha) = center, right, left
+	#center on the point, right of the point, or left of the point, horizontally  
+	#vertical alignment = center, top, bottom, baseline, center_baseline
+	#center on the point, top of point, bottom of point vertically 
+	#baseline means the bottom of text is on where the center point is vertically
+	#center)baseline means slightly lower than center point 
+	#ax4.set_anchor("N") 
+	ax4.text(length/3,length/length,"sector 2",va="center",ha="left",rotation=0)
+	ax4.text(length/3,-length/length,"sector 3",va="center",ha="left",rotation=0)
+	ax4.text(-length/3,length/length,"sector 7",va="center",ha="right",rotation=0)
+	ax4.text(-length/3,-length/length,"sector 6",va="center",ha="right",rotation=0)
+	ax4.text(length/4,length-length*0.55,"sector 1",va="center",ha="right",rotation=0)
+	ax4.text(-length/4,length-length*0.55,"sector 8",va="center",ha="left",rotation=0)
+	ax4.text(-length/4,-length+length*0.55,"sector 5",va="center",ha="left",rotation=0)
+	ax4.text(length/4,-length+length*0.55,"sector 4",va="center",ha="right",rotation=0)
+	#add all the patches (or shape, i.e. polygon, circle, wedge, etc) 
+	ax4.add_patch(originPoint)
+	ax4.add_patch(kaonring)
+	ax4.add_patch(protonring)
+	ax4.add_patch(pionring)
+	ax4.add_patch(rightwedge)
+	ax4.add_patch(leftwedge)
+	ax4.add_patch(upwedge)
+	ax4.add_patch(downwedge)
+	ax4.add_patch(maxring)
+	ax4.add_patch(minring)
+	#edit the axis
+	ax4.set_xscale("linear") 
+	ax4.set_yscale("linear")
+	ax4.set_ylabel("y in cm")
+	ax4.set_xlabel("x in cm")
+	ax4.set_ylim(ymin=-length,ymax=length)
+	ax4.set_xlim(xmin=-length,xmax=length)
+	ax4.legend(loc="best", prop={'size':7}) 
+	#end of fig4
+
 
 #end the timer
 print("%s seconds" % (time.time()-start_time))
+plt.show()

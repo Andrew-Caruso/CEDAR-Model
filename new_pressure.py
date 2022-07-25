@@ -24,10 +24,14 @@ from matplotlib.patches import Circle as circle
 from matplotlib.patches import Wedge as wedge 
 from matplotlib.lines import Line2D as line
 #layout of code in sections:
+#start timer 
 #declaration of functions
 #initalization of parameters
 #computation 
+#stop timer 
 
+	#start timer
+start_time = time.time()
 
 
 	#declare all functions
@@ -237,11 +241,6 @@ def pressureScan(determiner,statvec,mass,numRings,stat5pvec,stat6pvec,stat7pvec,
 				stat7pvec[statindex] += 1
 			if stat8p == 1:
 				stat8pvec[statindex] += 1
-	'''
-		#testing list comprehension instead of for loop
-	statvec = [P for P in range(P_min,P_max,NumPress) if check(radius(mass,n),P,mass,index(P),r_min,r_max,P_min,P_max) == 1]
-	stat5pvec = [P for P in range(P_min,P_max,NumPress) for i in range(0,numRings) if valuesHist5p(photonGeneration(r,mass)[0]) ==1]
-	'''
 	return statvec,stat5pvec,stat6pvec,stat7pvec,stat8pvec
 
 #pressure selection for alignment (rings graph)
@@ -281,9 +280,8 @@ def pressureSelection(determiner,mass,numRings,hue,name):
 	print("total count:",totalcount)
 	getAsymmetries(sumup,sumdown,sumleft,sumright,totalcount) 
 	ring = circle((0,0),r-5,fill=False,color=hue,label=name,alpha=1)
-	return ring 
-
-
+	return ring, sumup, sumdown,sumleft,sumright 
+	
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -295,10 +293,6 @@ def pressureSelection(determiner,mass,numRings,hue,name):
 
 
 
-
-	#start the timer
-start_time = time.time()
-
 	#declare unfixed parameters
 x_off = 0.0 #cm shift in x of the photons (opposite of shifting the aperture)
 y_off = 0.0 #cm shift in y of the photons (opposite of shifting the aperture)
@@ -307,7 +301,7 @@ sigma = 0.01 #cm smearing of photons per particle ring
 T = 293 #K 
 l = 300 #cm or 3m distance of cone 
 NumPress = int(2E+2) #number of pressures to generate for the pressure scan
-doScan = 1 #1 means do pressure scan while 0 means do pressure select
+doScan = 0 #1 means do pressure scan while 0 means do pressure selection and while -1 means do diaphram scan  
 useN2 = 0 #1 means use N2 gas while 0 means use H2 gas  
 
 	#declare fixed parameters 
@@ -395,8 +389,8 @@ if useN2 == 1:
 	r_max= r_kaon + dev #maximum radius of aperture 
 	apertureSize = r_max - r_min 
 	#set the max and min pressures for the scan 
-	P_max = 2000000 #baryes 2 bar 
-	P_min = 1600000 #baryes 1.6 bar
+	P_max = int(2E+6) #baryes 2 bar 
+	P_min = int(1.6E+6) #baryes 1.6 bar
 	step = (P_max - P_min) / NumPress 
 
 elif useN2 == 0:
@@ -438,7 +432,6 @@ print("P_max: ",P_max/1E+6,"bar\n")
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #computation 
 
-
 	#perform the pressure scan
 if doScan == 1:
 	print("Performing Pressure Scan:")
@@ -446,43 +439,51 @@ if doScan == 1:
 	vec2,vec5p2,vec6p2,vec7p2,vec8p2= pressureScan(2,vec2,mpr,num2,vec5p2,vec6p2,vec7p2,vec8p2)
 	vec3,vec5p3,vec6p3,vec7p3,vec8p3= pressureScan(3,vec3,mpi,num3,vec5p3,vec6p3,vec7p3,vec8p3)
 	#create the first histogram 
+	#manually make the histograms using numpy.bar instead of numpy.hist
 	fig1, ax1 = plt.subplots(1,1)
 	ax1.bar(bins,vec1,width=step,label=name1,color=color1,align='edge')
 	ax1.bar(bins,vec2,width=step,label=name2,color=color2,align='edge')
 	ax1.bar(bins,vec3,width=step,label=name3,color=color3,align='edge')
-	#b are bins, v are values of momentum marking the start and end of each bin, and _ are patches (ignored) 
 	ax1.set_xlabel("pressure (Ba)")
 	ax1.set_ylabel("frequency")
 	ax1.legend(loc="best") 
 	ax1.set_title("Pressure Scan of Particles")
-	'''
 	#create the second histogram 
+	#manually make the histograms using numpy.bar instead of numpy.hist
 	#create histograms for Nc 5+,6+,7+,8+ for each particle 
 	fig3,ax3 = plt.subplots(1,1) 
-	b5p1,v5p1, _ = ax3.bar(vec5p1,bins=numBins,range=[P_min,P_max],label="5+",color='magenta')
-	b6p1,v6p1, _ = ax3.bar(vec6p1,bins=numBins,range=[P_min,P_max],label="6+",color='darkred')
-	b7p1,v7p1, _ = ax3.bar(vec7p1,bins=numBins,range=[P_min,P_max],label="7+",color='lime')
-	b8p1,v8p1, _ = ax3.bar(vec8p1,bins=numBins,range=[P_min,P_max],label="8",color='cyan')
-	b5p2,v5p2, _ = ax3.bar(vec5p2,bins=numBins,range=[P_min,P_max])
-	b6p2,v6p2, _ = ax3.bar(vec6p2,bins=numBins,range=[P_min,P_max])
-	b7p2,v7p2, _ = ax3.bar(vec7p2,bins=numBins,range=[P_min,P_max])
-	b8p2,v8p2, _ = ax3.bar(vec8p2,bins=numBins,range=[P_min,P_max])
-	b5p3,v5p3, _ = ax3.bar(vec5p3,bins=numBins,range=[P_min,P_max])
-	b6p3,v6p3, _ = ax3.bar(vec6p3,bins=numBins,range=[P_min,P_max])
-	b7p3,v7p3, _ = ax3.bar(vec7p3,bins=numBins,range=[P_min,P_max])
-	b8p3,v8p3, _ = ax3.bar(vec8p3,bins=numBins,range=[P_min,P_max])
+	ax3.bar(bins,vec5p1,width=step,label="5+",color='magenta')
+	ax3.bar(bins,vec6p1,width=step,label="6+",color='darkred')
+	ax3.bar(bins,vec7p1,width=step,label="7+",color='lime')
+	ax3.bar(bins,vec8p1,width=step,label="8",color='cyan')
+	ax3.bar(bins,vec5p2,width=step,color='magenta')
+	ax3.bar(bins,vec6p2,width=step,color='darkred')
+	ax3.bar(bins,vec7p2,width=step,color='lime')
+	ax3.bar(bins,vec8p2,width=step,color='cyan')
+	ax3.bar(bins,vec5p3,width=step,color='magenta')
+	ax3.bar(bins,vec6p3,width=step,color='darkred')
+	ax3.bar(bins,vec7p3,width=step,color='lime')
+	ax3.bar(bins,vec8p3,width=step,color='cyan')
 	ax3.set_xlabel("pressure (Ba)")
 	ax3.set_ylabel("frequency")
 	ax3.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))
-	'''
-	ax1.legend(loc="best") 
+	ax3.legend(loc="best") 
 
 	#perform the selected pressure alignment (rings graph)
 elif doScan == 0:
 	print("Performing Pressure Selection:")
-	kaonring = pressureSelection(1,mka,num1,color1,name1)
-	protonring = pressureSelection(2,mpr,num2,color2,name2)
-	pionring = pressureSelection(3,mpi,num3,color3,name3)
+	kaonring,up1,down1,left1,right1 = pressureSelection(1,mka,num1,color1,name1)
+	protonring,up2,down2,left2,right2= pressureSelection(2,mpr,num2,color2,name2)
+	pionring,up3,down3,left3,right3= pressureSelection(3,mpi,num3,color3,name3)
+	#get the total asymmetries include all three particles
+	totup = up1+up2+up3
+	totdown = down1+down2+down3
+	totleft = left1+left2+left3
+	totright = right1+right2+right3
+	totnum = totup+totdown+totleft+totright
+	print("\tfor total")
+	getAsymmetries(totup,totdown,totleft,totright,totnum)
+
 	#create the rings graph
 	#NOTE: all radii for fig4 have 5 cm removed to make scaling better for visual
 	#start of fig4 (for single pressure, NOT for pressure scan or monte carlo) 
@@ -547,7 +548,13 @@ elif doScan == 0:
 	ax4.legend(loc="best", prop={'size':7}) 
 	#end of fig4
 
+	#perform the diaphram scan
+if doScan == -1:
+	print("Performing Diaphram Scan:")
 
-#end the timer
+
+	#stop timer
+print("Run time:")
 print("%s seconds" % (time.time()-start_time))
+print("%s minutes" % ((time.time()-start_time)/60))
 plt.show()

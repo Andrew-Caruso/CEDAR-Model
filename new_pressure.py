@@ -159,7 +159,7 @@ def getAsymmetries(up,down,left,right,totalcount):
 	print("up ratio:",ratioup)
 	print("down ratio:",ratiodown)
 	print("left ratio:",ratioleft)
-	print("right ratio:",ratioright,"\n")
+	print("right ratio:",ratioright)
 	return 0 
 
 #calculate the refractive index 
@@ -283,6 +283,11 @@ def pressureSelection(determiner,mass,numRings,hue,name):
 	return ring, sumup, sumdown,sumleft,sumright 
 	
 
+def diaphragmScan(Press):
+
+
+	return 0
+
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -296,12 +301,11 @@ def pressureSelection(determiner,mass,numRings,hue,name):
 	#declare unfixed parameters
 x_off = 0.0 #cm shift in x of the photons (opposite of shifting the aperture)
 y_off = 0.0 #cm shift in y of the photons (opposite of shifting the aperture)
-P_select = 1.8E+6 #baryes the selected pressure 
 sigma = 0.01 #cm smearing of photons per particle ring
 T = 293 #K 
 l = 300 #cm or 3m distance of cone 
 NumPress = int(2E+2) #number of pressures to generate for the pressure scan
-doScan = 0 #1 means do pressure scan while 0 means do pressure selection and while -1 means do diaphram scan  
+doScan = 0 #1 means do pressure scan while 0 means do pressure selection and while -1 means do diaphragm scan  
 useN2 = 0 #1 means use N2 gas while 0 means use H2 gas  
 
 	#declare fixed parameters 
@@ -371,7 +375,6 @@ print("x_off:",x_off,"cm")
 print("y_off:",y_off,"cm")
 print("sigma:",sigma,"cm") 
 print("number of steps:",NumPress)
-print("selected pressure:",P_select/1E+6,"bar")
 
 	#set parameters according to chosen gas 
 if useN2 == 1:
@@ -392,6 +395,7 @@ if useN2 == 1:
 	P_max = int(2E+6) #baryes 2 bar 
 	P_min = int(1.6E+6) #baryes 1.6 bar
 	step = (P_max - P_min) / NumPress 
+	P_select = 1.8E+6 #baryes or 1.8 bar the selected pressure 
 
 elif useN2 == 0:
 	#for H2 gas 
@@ -411,6 +415,7 @@ elif useN2 == 0:
 	P_max = int(4.3E+6) #baryes 4.2 bar 
 	P_min = int(3.55E+6) #baryes 3.55 bar
 	step = (P_max - P_min) / NumPress 
+	P_select = 3.7E+6 #baryes or 1.8 bar the selected pressure 
 
 #create bins array for all histograms
 bins = arange(P_min,P_max,step) 
@@ -421,7 +426,8 @@ print("r_min:",r_min,"cm")
 print("r_max:",r_max,"cm")
 print("aperture size:",apertureSize,"cm")
 print("P_min: ",P_min/1E+6,"bar")
-print("P_max: ",P_max/1E+6,"bar\n")
+print("P_max: ",P_max/1E+6,"bar")
+print("selected pressure:",P_select/1E+6,"bar\n")
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -482,8 +488,11 @@ elif doScan == 0:
 	totright = right1+right2+right3
 	totnum = totup+totdown+totleft+totright
 	print("\tfor total")
+	print("up: ",totup)
+	print("down: ",totdown)
+	print("left: ",totleft)
+	print("right: ",totright)
 	getAsymmetries(totup,totdown,totleft,totright,totnum)
-
 	#create the rings graph
 	#NOTE: all radii for fig4 have 5 cm removed to make scaling better for visual
 	#start of fig4 (for single pressure, NOT for pressure scan or monte carlo) 
@@ -545,16 +554,20 @@ elif doScan == 0:
 	ax4.set_xlabel("x in cm")
 	ax4.set_ylim(ymin=-length,ymax=length)
 	ax4.set_xlim(xmin=-length,xmax=length)
+	ax4.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))	
 	ax4.legend(loc="best", prop={'size':7}) 
 	#end of fig4
 
-	#perform the diaphram scan
+	#perform the diaphragm scan
+	#want to replicate Fig 6.5 page 156 from "Leptonic Decays and Kaon Identification at the NA62 Experiment at CERN"
+	#by Angela Romano, thesis submitted to the Univerisyt of Birmingham for the degree of Doctor of Philosophy 
 if doScan == -1:
 	print("Performing Diaphram Scan:")
+	diaphragmScan() 
 
 
 	#stop timer
-print("Run time:")
+print("\tRun time:")
 print("%s seconds" % (time.time()-start_time))
 print("%s minutes" % ((time.time()-start_time)/60))
 plt.show()

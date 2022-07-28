@@ -13,6 +13,7 @@ from numpy import arccos as arccos
 from numpy import tan as tan 
 from numpy import shape as shape 
 from numpy import where as where 
+from numpy import max as max 
 from numpy import pi as pi 
 from numpy import random as rand 
 from numpy import isnan as isnan 
@@ -66,8 +67,8 @@ def findPressure(r,m):
 	return Pout 
 
 #generate photons 
-def photonGeneration(r,m): 
-	numG = 18 #number of photons to generate on the ring 
+def photonGeneration(r,m,a_min,a_max,numG): 
+	#numG is the number of photons to generate on the ring 
 	chart = zeros(8) #index = sector-1, used as binary 0 or 1 
 	#for a PM of the sector detecting 1 or more photons 
 	#from sector 1 (index 0) to sector 8 (index 7)
@@ -85,7 +86,7 @@ def photonGeneration(r,m):
 		y = r0*sin(phi) + y_off 
 		r1 = sqrt(x**2 + y**2) 
 		#if the photon radius is no longer in the ring, throw the iteration out and move on to the next photon  
-		if r1 < r_min or r1 > r_max:
+		if r1 < a_min or r1 > a_max:
 			continue
 		if (phi > 0 and phi < pi/4): 
 			#print("sector 2") 
@@ -228,11 +229,14 @@ def pressureScan(determiner,statvec,mass,numRings,stat5pvec,stat6pvec,stat7pvec,
 		#all radii are used because off set of aperture and smearing of particle rings
 		#allows for certain invalid radii to still be inside the aperture to some degree 
 		for i in range(0,numRings):
-			Nc,up,down,left,right = photonGeneration(r,mass)
+			Nc,up,down,left,right = photonGeneration(r,mass,r_min,r_max,18)
 			stat5p = valuesHist5p(Nc) 
 			stat6p = valuesHist6p(Nc) 
 			stat7p = valuesHist7p(Nc) 
 			stat8p = valuesHist8p(Nc) 
+			#store the frequency in each array (for each coincidence)
+			#each array is of length numPress, number of pressures to generate, so each slot or pressure of the array 
+			#corresponds to the frequency of 5+,6+,7+ or 8 coincidence at said slot or pressure  
 			if stat5p == 1:
 				stat5pvec[statindex] += 1
 			if stat6p == 1:
@@ -267,7 +271,7 @@ def pressureSelection(determiner,mass,numRings,hue,name):
 		r = radius(mass,n)
 		print("radius:",r,"cm")
 		for i in range(0,numRings):
-			Nc,up,down,left,right = photonGeneration(r,mass) 		
+			Nc,up,down,left,right = photonGeneration(r,mass,r_min,r_max,18) 		
 			sumup += up
 			sumdown += down
 			sumleft += left
@@ -282,11 +286,24 @@ def pressureSelection(determiner,mass,numRings,hue,name):
 	ring = circle((0,0),r-5,fill=False,color=hue,label=name,alpha=1)
 	return ring, sumup, sumdown,sumleft,sumright 
 	
-
-def diaphragmScan(Press):
-
-
-	return 0
+#vary the width of aperture, thus a diaphragm scan at a fixed pressure
+def diaphragmScan(w_min,w_max,mass):
+	stepval = 0.005 
+	i = int(0)
+	widths = arange(w_min,w_max,stepval)
+	coincidences = zeros(len(widths))
+	for w in widths:
+		#these are in photonGeneration 
+		a_min = r_kaon - w/2.0
+		a_max = r_kaon + w/2.0
+		for x in range(0,1000):
+			num,_,_,_,_ = photonGeneration(r_kaon,mass,a_min,a_max,18)
+			if num >= 6:
+				coincidences[i] += 1 
+			#number of coincidences is total number of photons detected in any of the sectors 
+		i += int(1) 
+	return widths,coincidences
+ 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -301,12 +318,16 @@ def diaphragmScan(Press):
 	#declare unfixed parameters
 x_off = 0.0 #cm shift in x of the photons (opposite of shifting the aperture)
 y_off = 0.0 #cm shift in y of the photons (opposite of shifting the aperture)
-sigma = 0.01 #cm smearing of photons per particle ring
+sigma = 0.02 #cm smearing of photons per particle ring
 T = 293 #K 
 l = 300 #cm or 3m distance of cone 
 NumPress = int(2E+2) #number of pressures to generate for the pressure scan
-doScan = 0 #1 means do pressure scan while 0 means do pressure selection and while -1 means do diaphragm scan  
 useN2 = 0 #1 means use N2 gas while 0 means use H2 gas  
+doScan = 3
+#0 for pressure scan
+#1 for pressure selection (alignment)
+#2 for diaphragm scan
+#3 for photon scan 
 
 	#declare fixed parameters 
 P0 = 1E+6 #baryes 1E+5 Pa 1 bar  
@@ -353,7 +374,7 @@ vec1 = zeros(NumPress)
 vec2 = zeros(NumPress) 
 vec3 = zeros(NumPress) 
 #array of Nc 5+, 6+, 7+, 8 for each particle  
-#Nc means number of coincidences 
+#Nc denotes number of coincidences 
 vec5p1 = zeros(NumPress) 
 vec6p1 = zeros(NumPress) 
 vec7p1 = zeros(NumPress) 
@@ -390,7 +411,7 @@ if useN2 == 1:
 	r_kaon = radius(mka,n)
 	r_min = r_kaon - dev #minimum radius of the aperture 
 	r_max= r_kaon + dev #maximum radius of aperture 
-	apertureSize = r_max - r_min 
+	width0 = r_max - r_min #aperture size i.e. width of diaphragm  
 	#set the max and min pressures for the scan 
 	P_max = int(2E+6) #baryes 2 bar 
 	P_min = int(1.6E+6) #baryes 1.6 bar
@@ -410,9 +431,9 @@ elif useN2 == 0:
 	r_kaon = radius(mka,n)
 	r_min = r_kaon - dev #minimum radius of the aperture 
 	r_max= r_kaon + dev #maximum radius of aperture 
-	apertureSize = r_max - r_min 
+	width0 = r_max - r_min 
     #set the max and min pressures for the scan 
-	P_max = int(4.3E+6) #baryes 4.2 bar 
+	P_max = int(4.35E+6) #baryes 4.4 bar 
 	P_min = int(3.55E+6) #baryes 3.55 bar
 	step = (P_max - P_min) / NumPress 
 	P_select = 3.7E+6 #baryes or 1.8 bar the selected pressure 
@@ -424,7 +445,7 @@ bins = arange(P_min,P_max,step)
 print("step size:",step)
 print("r_min:",r_min,"cm")
 print("r_max:",r_max,"cm")
-print("aperture size:",apertureSize,"cm")
+print("aperture size:",width0,"cm")
 print("P_min: ",P_min/1E+6,"bar")
 print("P_max: ",P_max/1E+6,"bar")
 print("selected pressure:",P_select/1E+6,"bar\n")
@@ -439,7 +460,7 @@ print("selected pressure:",P_select/1E+6,"bar\n")
 #computation 
 
 	#perform the pressure scan
-if doScan == 1:
+if doScan == 0:
 	print("Performing Pressure Scan:")
 	vec1,vec5p1,vec6p1,vec7p1,vec8p1= pressureScan(1,vec1,mka,num1,vec5p1,vec6p1,vec7p1,vec8p1)
 	vec2,vec5p2,vec6p2,vec7p2,vec8p2= pressureScan(2,vec2,mpr,num2,vec5p2,vec6p2,vec7p2,vec8p2)
@@ -476,7 +497,7 @@ if doScan == 1:
 	ax3.legend(loc="best") 
 
 	#perform the selected pressure alignment (rings graph)
-elif doScan == 0:
+elif doScan == 1:
 	print("Performing Pressure Selection:")
 	kaonring,up1,down1,left1,right1 = pressureSelection(1,mka,num1,color1,name1)
 	protonring,up2,down2,left2,right2= pressureSelection(2,mpr,num2,color2,name2)
@@ -561,13 +582,54 @@ elif doScan == 0:
 	#perform the diaphragm scan
 	#want to replicate Fig 6.5 page 156 from "Leptonic Decays and Kaon Identification at the NA62 Experiment at CERN"
 	#by Angela Romano, thesis submitted to the Univerisyt of Birmingham for the degree of Doctor of Philosophy 
-if doScan == -1:
-	print("Performing Diaphram Scan:")
-	diaphragmScan() 
+	#as width increased from 0.4 mm to 2 mm 
+	#P = P_max of the pion peak 
+if doScan == 2:
+	print("Performing Diaphragm Scan:")
+	'''
+	#perform pressure scan of pion 
+	_,_,vec6p3,_,_= pressureScan(3,vec3,mpi,num3,vec5p3,vec6p3,vec7p3,vec8p3)
+	#get the frequency at the peak 
+	#get the pressure at the peak
+	peak3 = where(vec6p3 == max(vec6p3)) #returns a list from the array 
+	peak3_index = peak3[0][0] #get the list then return the elemenet of the list  
+	print("peak index:",peak3_index)
+	'''
+	P_select = 1.75E+6 #baryes 1.75 bar
+	num6p3 = max(vec6p3)
+	width_min = 0.0 #cm  
+	width_max = 0.2 #cm  
+	#print the set parameters 
+	print("peak frequency: ",num6p3)
+	print("peak pressure:",P_select/1E+6,"bar")
+	print("min width: ",width_min)
+	print("max width: ",width_max)
+	#perform the diaphragm scan at the selected pressure (pressure at the peak)
+	widthVal, numCoin = diaphragmScan(width_min,width_max,mka)
+	'''
+	 #create the single histogram for pion 6+ coincidence 
+	#to confirm the numbers 
+	fig2, ax2 = plt.subplots(1,1)
+	ax2.bar(bins,vec6p3,width=step,label="6+",color='darkred')
+	ax2.set_xlabel("pressure (Ba)")
+	ax2.set_ylabel("frequency")
+	ax2.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))
+	ax2.legend(loc="best") 
+	'''
+	#create the effifiency vs width plot
+	fig5, ax5 = plt.subplots(1,1)
+	ax5.plot(widthVal,numCoin)
+	ax5.set_xlabel("diaphragm width (cm)")
+	ax5.set_ylabel("number of coincidences")
+	ax5.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))	
+	plt.show()
 
+	#perform photon scan
+if doScan == 3:
+	print("Performing Photon Scan")
 
 	#stop timer
-print("\tRun time:")
+print("\n\tRun time:")
 print("%s seconds" % (time.time()-start_time))
 print("%s minutes" % ((time.time()-start_time)/60))
 plt.show()

@@ -335,7 +335,7 @@ def photonScan(numG,numR,bool,numG_array):
 	#mode 1: create single histogram for single numG
 	if bool == 1:
 		#generate 2 histograms for single numG
-		print("Selected photon scan mode 1 (1D histogram)")
+		print("\tSelected photon scan mode 1 (1D histogram)")
 		num = numG 
 		for i in range(0,numR): 
 			numC,_,_,_,_,time= photonGeneration(radius,mass,b_min,b_max,numG)
@@ -354,35 +354,224 @@ def photonScan(numG,numR,bool,numG_array):
 		y_max2 = max(bins_t)
 		print("time max:",x_max2,",",y_max2)
 		ax6[1].annotate("numG: %i" % num,(x_max2*0.8,y_max2*0.9),ha='center',va='center')
-		ax6[1].set_xlabel("time (ps)")
+		ax6[1].set_xlabel("Time (ps)")
 
 	#mode 2: use outputs from many histograms and many numG to create 2D histogram
 	else: 	
 		#generate 2D histograms for many numG 
 		print("Selected photon scan mode 2 (2D histogram)")
-		coin_array= zeros(numG)  
-		time_array = zeros(numG)	
-		print("coin shape:",shape(coin_array))
-		print("time shape:",shape(time_array))
-		print("numG shape:",shape(numG_array))
-		for num in range(1,numG+1):
+		coin_array= zeros(numG*numR)  
+		time_array = zeros(numG*numR)	
+		output_numG_array = zeros(numG*numR) #another numG array, but this one will only be used for output in the loop, i.e. not iterated over 
+		index = 0
+		for num in numG_array: 
 			for i in range(0,numR): 
 				numC,_,_,_,_,time = photonGeneration(radius,mass,b_min,b_max,num)
-				coin_array[num-1] = numC  
-				time_array[num-1] = time
+				coin_array[index] = numC  
+				time_array[index] = time
+				output_numG_array[index] = num 
+				index += 1
 		#reshape the coin and time arrays 
-		coin_array = reshape(coin_array,(numG,-1))
-		time_array = reshape(time_array,(numG,-1))
+		#coin_array = reshape(coin_array,(numG,-1))
+		#time_array = reshape(time_array,(numG,-1))
 		print("coin shape:",shape(coin_array))
 		print("time shape:",shape(time_array))
-		print("numG shape:",shape(numG_array))
-		'''
-		ax6[1].hist2d(numG_array,coin_array)
-		ax6[0].hist2d(numG_array,time_array) 
-		'''
-
-
+		print("output numG shape:",shape(output_numG_array))
+		#create the time 2D histogram 
+		_,_,_,im0 = ax6[0].hist2d(output_numG_array,time_array) 
+		ax6[0].set_xlabel("Number of photons")
+		ax6[0].set_ylabel("Time (ps)")
+		ax6[0].set_title("Time vs Number of Photons")
+		fig6.colorbar(im0,ax=ax6[0])
+		#create the sectors @D histogram 
+		_,_,_,im1 = ax6[1].hist2d(output_numG_array,coin_array)
+		ax6[1].set_xlabel("Number of photons")
+		ax6[1].set_ylabel("Number of sectors")
+		ax6[1].set_title("Number of Sectors vs Number of Photons")
+		fig6.colorbar(im1,ax=ax6[1])
 	return coin_array,time_array 
+
+
+#function to run settings (to allow or disllow access to edit different parameters per run of the program) 
+def settings():
+	print("\n\tSettings mode")
+	print("For the following please enter 1 or 0 for yes or no respective for each parameter in order to edit the parameter")
+	global on_xoff
+	on_xoff = input("on_xoff: ")
+	on_xoff = emptyStrChecker(on_xoff)
+	on_xoff = boolChecker(on_xoff)
+	global on_yoff
+	on_yoff = input("on_yoff: ")
+	on_yoff = emptyStrChecker(on_yoff)
+	on_yoff = boolChecker(on_yoff)
+	global on_sigma
+	on_sigma = input("on_sigma: ")
+	on_sigma = emptyStrChecker(on_sigma)
+	on_sigma = boolChecker(on_sigma)
+	global on_T
+	on_T = input("on_T: ")
+	on_T = emptyStrChecker(on_T)
+	on_T = boolChecker(on_T)
+	global on_l
+	on_l = input("on_l: ")
+	on_l = emptyStrChecker(on_l)
+	on_l = boolChecker(on_l)
+	global on_PselectN2
+	on_PselectN2 = input("on_PselectN2: ")
+	on_PselectN2 = emptyStrChecker(on_PselectN2)
+	on_PselectN2 = boolChecker(on_PselectN2)
+	global on_PselectH2
+	on_PselectH2 = input("on_PselectH2: ")
+	on_PselectH2 = emptyStrChecker(on_PselectH2)
+	on_PselectH2 = boolChecker(on_PselectH2)
+	global on_NumPress
+	on_NumPress = input("on_NumPress: ")
+	on_NumPress = emptyStrChecker(on_NumPress)
+	on_NumPress = boolChecker(on_NumPress)
+	global on_useN2
+	on_useN2 = input("on_useN2: ")
+	on_useN2 = emptyStrChecker(on_useN2)
+	on_useN2 = boolChecker(on_useN2)
+	global on_doScan
+	on_doScan = input("on_doScan: ")
+	on_doScan = emptyStrChecker(on_doScan)
+	on_doScan = boolChecker(on_doScan)
+	global on_numPhos
+	on_numPhos = input("on_numPhos: ")
+	on_numPhos = emptyStrChecker(on_numPhos)
+	on_numPhos = boolChecker(on_numPhos)
+	global on_numRings
+	on_numRings = input("on_numRings: ")
+	on_numRings = emptyStrChecker(on_numRings)
+	on_numRings = boolChecker(on_numRings)
+	global on_binsGScan
+	on_binsGScan = input("on_binsGScan: ")
+	on_binsGScan = boolChecker(on_binsGScan)
+	global on_genSingle
+	on_genSingle = input("on_genSigle: ")
+	on_genSingle = emptyStrChecker(on_genSingle)
+	on_genSingle = boolChecker(on_genSingle)
+	return 0
+
+#check whether an input is binary or not
+def boolChecker(bool):
+	try: 
+		bool = int(bool)
+	except:
+		bool = 2
+	while bool != 1 and bool != 0:
+		print("\nWARNING: Invalid binary input") 
+		bool = input("Please enter 1 or 0: ")
+		bool = emptyStrChecker(bool)
+		try: 
+			bool = int(bool)
+		except:
+			bool = 2
+	return bool  
+
+#check whether a boolean is empty or not 
+def emptyStrChecker(bool,isBinary = 1):
+	null = ""
+	while bool == null:
+		print("\nWARNING: Empty input")
+		if isBinary == 1:
+			bool = input("Please enter 1 or 0: ")
+		else:
+			bool = input("Please enter an integer or float value: ")
+	return bool 
+
+'''
+#check whether a value is a float/integer or not
+def intFloatChecker(value,isInt):
+	while type(value) != type(1):
+		print("\nWARNING: Invalid input")
+		if isInt == 1:
+			value = input("Please enter an integer value: ")
+			try:
+				value = int(value)
+			except:
+				value = "bob"
+		if isInt == 0: 
+			value = input("Please enter an float value: ")
+			try:
+				value = float(value)
+			except:
+				value = "bob"
+	return value 
+'''
+
+def controlPanel(inLoop):
+	print("\n\tWelcome!")
+	print("\nFor the following questions please enter 1 or 0 for yes or no respective:")
+	#need to convert the input string to an integer or float 
+	inLoop = input("Do you want to continue: ")
+	inLoop = emptyStrChecker(inLoop)
+	inLoop = boolChecker(inLoop)
+	if inLoop == 0:
+		print("\nProgram terminated")
+		print("Goodbye!")
+		global doScan
+		doScan = -1
+	else: 
+		on_Settings = input("Do you want to edit which parameters are accessible: ")
+		on_Settings = emptyStrChecker(on_Settings)
+		on_Settings = boolChecker(on_Settings)
+		if on_Settings == 1:
+			settings()
+		on_editing = input("Do you want to edit the accessible parameters: ")
+		on_editing = emptyStrChecker(on_editing)
+		on_editing = boolChecker(on_editing)
+		if on_editing == 1: 
+			if on_xoff == 1:
+				global x_off #access global var outside of controlpanel 
+				x_off = input("Enter the value for x_off: ")
+				x_off = emptyStrChecker(x_off,0)
+				#x_off = intFloatChecker(x_off,0) #FIX ME!!!!!!!!!!!! 
+			if on_yoff == 1:
+				global y_off
+				y_off = float(input("Enter value for y_off: "))
+			if on_sigma == 1:
+				global sigma 
+				sigma = float(input("Enter value for sigma: "))
+			if on_T == 1:
+				global T
+				T = float(input("Enter value for T: "))
+			if on_l == 1:
+				global l
+				l = float(input("Enter value for l: "))
+			if on_PselectN2 == 1:
+				global P_selectN2
+				P_selectN2 = float(input("enter a value for P_selectN2: "))
+			if on_PselectH2 == 1:
+				global P_selectH2
+				P_selectH2 = float(input("Enter value for P_selectH2: "))
+			if on_NumPress == 1:
+				global NumPress
+				NumPress = int(input("Enter value for NumPress: "))
+			if on_useN2 == 1:
+				global useN2
+				useN2 = int(input("Enter a value for useN2: "))
+			if on_doScan == 1:
+				doScan = int(input("Enter a value for doScan: "))
+			if on_numPhos == 1:
+				global numPhos
+				numPhos = int(input("Enter a value for numPhos: "))
+			if on_numRings == 1:
+				global numRings
+				numRings = int(input("Enter a value for numRings: "))
+			if on_binsGScan == 1:
+				global bins_Gscan
+				bins_Gscan = int(input("Enter a value for bins_Gscan: "))
+			if on_genSingle == 1:
+				global gen_single
+				gen_single = int(input("Enter a value for gen_single: "))
+			print("\n")
+		if on_editing == 0:
+			print("Using default parameters\n")
+	return inLoop 
+
+
+
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -395,11 +584,14 @@ def photonScan(numG,numR,bool,numG_array):
 
 
 	#declare unfixed parameters
+insideLoop = 1
 x_off = 0.0 #cm shift in x of the photons (opposite of shifting the aperture)
 y_off = 0.0 #cm shift in y of the photons (opposite of shifting the aperture)
 sigma = 0.02 #cm smearing of photons per particle ring
 T = 293 #K 
 l = 300 #cm or 3m distance of cone 
+P_selectN2 = 1.8E+6 #baryes or 1.8 bar the selected pressure 
+P_selectH2 = 3.7E+6 #baryes or 1.8 bar the selected pressure 
 NumPress = int(2E+2) #number of pressures to generate for the pressure scan
 useN2 = 1 #1 means use N2 gas while 0 means use H2 gas  
 doScan = 3
@@ -407,6 +599,12 @@ doScan = 3
 #1 for pressure selection (alignment)
 #2 for diaphragm scan
 #3 for photon scan 
+
+	#declare unfixed parameter for the PHOTONSCAN 
+numPhos = int(18) #number of photons
+numRings = 1000 #number of rings to generate per photon 
+bins_Gscan = 100 
+gen_single = 0 #to generate histogram for single numG else, generate histogram for many numG  
 
 	#declare fixed parameters 
 P0 = 1E+6 #baryes 1E+5 Pa 1 bar  
@@ -438,6 +636,23 @@ name3 = "pion"
 color1 = "tab:blue"
 color2 = "tab:orange"
 color3 = "tab:green"
+
+	#declared booleans for settings and control panel 
+on_settings = 1
+on_xoff = 1	
+on_yoff = 1
+on_sigma = 1
+on_T = 1
+on_l = 1
+on_NumPress = 1
+on_useN2 = 1
+on_doScan = 1
+on_numPhos = 1
+on_numRings = 1
+on_binsGScan = 1
+on_genSingle = 1
+on_PselectN2 = 1
+on_PselectH2 = 1
 
 	#set defaults for parameters that will be changed 
 n = 1 #index of refraction will be changed by changing pressure via refractive index 
@@ -495,7 +710,7 @@ if useN2 == 1:
 	P_max = int(2E+6) #baryes 2 bar 
 	P_min = int(1.6E+6) #baryes 1.6 bar
 	step = (P_max - P_min) / NumPress 
-	P_select = 1.8E+6 #baryes or 1.8 bar the selected pressure 
+	P_select = P_selectN2 
 
 elif useN2 == 0:
 	#for H2 gas 
@@ -515,7 +730,7 @@ elif useN2 == 0:
 	P_max = int(4.35E+6) #baryes 4.4 bar 
 	P_min = int(3.55E+6) #baryes 3.55 bar
 	step = (P_max - P_min) / NumPress 
-	P_select = 3.7E+6 #baryes or 1.8 bar the selected pressure 
+	P_select = P_selectH2 
 
 #create bins array for all histograms
 bins1 = arange(P_min,P_max,step) 
@@ -538,187 +753,187 @@ print("selected pressure:",P_select/1E+6,"bar\n")
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #computation 
 
+while insideLoop == 1:
+
+	#call the controlpanel to set parameters
+	insideLoop = controlPanel(insideLoop)
+
 	#perform the pressure scan
-if doScan == 0:
-	print("\tPerforming Pressure Scan:")
-	vec1,vec5p1,vec6p1,vec7p1,vec8p1= pressureScan(1,vec1,mka,num1,vec5p1,vec6p1,vec7p1,vec8p1)
-	vec2,vec5p2,vec6p2,vec7p2,vec8p2= pressureScan(2,vec2,mpr,num2,vec5p2,vec6p2,vec7p2,vec8p2)
-	vec3,vec5p3,vec6p3,vec7p3,vec8p3= pressureScan(3,vec3,mpi,num3,vec5p3,vec6p3,vec7p3,vec8p3)
-	#create the first histogram 
-	#manually make the histograms using numpy.bar instead of numpy.hist
-	fig1, ax1 = plt.subplots(1,1)
-	ax1.bar(bins1,vec1,width=step,label=name1,color=color1,align='edge')
-	ax1.bar(bins1,vec2,width=step,label=name2,color=color2,align='edge')
-	ax1.bar(bins1,vec3,width=step,label=name3,color=color3,align='edge')
-	ax1.set_xlabel("pressure (Ba)")
-	ax1.set_ylabel("frequency")
-	ax1.legend(loc="best") 
-	ax1.set_title("Pressure Scan of Particles")
-	#create the second histogram 
-	#manually make the histograms using numpy.bar instead of numpy.hist
-	#create histograms for Nc 5+,6+,7+,8+ for each particle 
-	fig3,ax3 = plt.subplots(1,1) 
-	ax3.bar(bins1,vec5p1,width=step,label="5+",color='magenta')
-	ax3.bar(bins1,vec6p1,width=step,label="6+",color='darkred')
-	ax3.bar(bins1,vec7p1,width=step,label="7+",color='lime')
-	ax3.bar(bins1,vec8p1,width=step,label="8",color='cyan')
-	ax3.bar(bins1,vec5p2,width=step,color='magenta')
-	ax3.bar(bins1,vec6p2,width=step,color='darkred')
-	ax3.bar(bins1,vec7p2,width=step,color='lime')
-	ax3.bar(bins1,vec8p2,width=step,color='cyan')
-	ax3.bar(bins1,vec5p3,width=step,color='magenta')
-	ax3.bar(bins1,vec6p3,width=step,color='darkred')
-	ax3.bar(bins1,vec7p3,width=step,color='lime')
-	ax3.bar(bins1,vec8p3,width=step,color='cyan')
-	ax3.set_xlabel("pressure (Ba)")
-	ax3.set_ylabel("frequency")
-	ax3.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))
-	ax3.legend(loc="best") 
+	if doScan == 0:
+		print("\tPerforming Pressure Scan:")
+		vec1,vec5p1,vec6p1,vec7p1,vec8p1= pressureScan(1,vec1,mka,num1,vec5p1,vec6p1,vec7p1,vec8p1)
+		vec2,vec5p2,vec6p2,vec7p2,vec8p2= pressureScan(2,vec2,mpr,num2,vec5p2,vec6p2,vec7p2,vec8p2)
+		vec3,vec5p3,vec6p3,vec7p3,vec8p3= pressureScan(3,vec3,mpi,num3,vec5p3,vec6p3,vec7p3,vec8p3)
+		#create the first histogram 
+		#manually make the histograms using numpy.bar instead of numpy.hist
+		fig1, ax1 = plt.subplots(1,1)
+		ax1.bar(bins1,vec1,width=step,label=name1,color=color1,align='edge')
+		ax1.bar(bins1,vec2,width=step,label=name2,color=color2,align='edge')
+		ax1.bar(bins1,vec3,width=step,label=name3,color=color3,align='edge')
+		ax1.set_xlabel("pressure (Ba)")
+		ax1.set_ylabel("frequency")
+		ax1.legend(loc="best") 
+		ax1.set_title("Pressure Scan of Particles")
+		#create the second histogram 
+		#manually make the histograms using numpy.bar instead of numpy.hist
+		#create histograms for Nc 5+,6+,7+,8+ for each particle 
+		fig3,ax3 = plt.subplots(1,1) 
+		ax3.bar(bins1,vec5p1,width=step,label="5+",color='magenta')
+		ax3.bar(bins1,vec6p1,width=step,label="6+",color='darkred')
+		ax3.bar(bins1,vec7p1,width=step,label="7+",color='lime')
+		ax3.bar(bins1,vec8p1,width=step,label="8",color='cyan')
+		ax3.bar(bins1,vec5p2,width=step,color='magenta')
+		ax3.bar(bins1,vec6p2,width=step,color='darkred')
+		ax3.bar(bins1,vec7p2,width=step,color='lime')
+		ax3.bar(bins1,vec8p2,width=step,color='cyan')
+		ax3.bar(bins1,vec5p3,width=step,color='magenta')
+		ax3.bar(bins1,vec6p3,width=step,color='darkred')
+		ax3.bar(bins1,vec7p3,width=step,color='lime')
+		ax3.bar(bins1,vec8p3,width=step,color='cyan')
+		ax3.set_xlabel("pressure (Ba)")
+		ax3.set_ylabel("frequency")
+		ax3.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))
+		ax3.legend(loc="best") 
 
-	#perform the selected pressure alignment (rings graph)
-elif doScan == 1:
-	print("\tPerforming Pressure Selection:")
-	kaonring,up1,down1,left1,right1 = pressureSelection(1,mka,num1,color1,name1)
-	protonring,up2,down2,left2,right2= pressureSelection(2,mpr,num2,color2,name2)
-	pionring,up3,down3,left3,right3= pressureSelection(3,mpi,num3,color3,name3)
-	#get the total asymmetries include all three particles
-	totup = up1+up2+up3
-	totdown = down1+down2+down3
-	totleft = left1+left2+left3
-	totright = right1+right2+right3
-	totnum = totup+totdown+totleft+totright
-	print("\tfor total")
-	print("up: ",totup)
-	print("down: ",totdown)
-	print("left: ",totleft)
-	print("right: ",totright)
-	getAsymmetries(totup,totdown,totleft,totright,totnum)
-	#create the rings graph
-	#NOTE: all radii for fig4 have 5 cm removed to make scaling better for visual
-	#start of fig4 (for single pressure, NOT for pressure scan or monte carlo) 
-	fig4,ax4 = plt.subplots(1,1) 
-	originPoint= circle((0,0),0.05,fill=True,color="black",alpha=1)
-	maxring = circle((-x_off,-y_off),r_max-5,fill=False,color="black",label="ringlike aperture",alpha=1)
-	minring = circle((-x_off,-y_off),r_min-5,fill=False,color="black",alpha=1)
-	#plot borders to segregate the sectors 
-	length = int(r_max)-3
-	xpos = [-length,length]
-	ypos = [-length,length]
-	xneg = [length,-length]
-	yneg = [-length,length] 
-	xhor = [-length,length]
-	yhor = [0,0]
-	xver = [0,0]
-	yver = [-length,length]
-	ax4.plot(xpos,ypos,linestyle="dashed",color="black") 
-	ax4.plot(xneg,yneg,linestyle="dashed",color="black") 
-	ax4.plot(xhor,yhor,linestyle="dashed",color="black") 
-	ax4.plot(xver,yver,linestyle="dashed",color="black") 
-	#create wedges (sectors of left right up and down)
-	rightwedge = wedge((0,0),length/4,-45,45,width=None,color="red",label="right",alpha=0.2)
-	leftwedge = wedge((0,0),length/4,135,225,width=None,color="green",label="left",alpha=0.2)
-	upwedge = wedge((0,0),length/4,45,135,width=None,color="blue",label="up",alpha=0.2)
-	downwedge = wedge((0,0),length/4,225,315,width=None,color="orange",label="down",alpha=0.2)
-	#label each sector
-	#by default text is written from the upper right of each text position point 
-	#horizontal alignment (ha) = center, right, left
-	#center on the point, right of the point, or left of the point, horizontally  
-	#vertical alignment = center, top, bottom, baseline, center_baseline
-	#center on the point, top of point, bottom of point vertically 
-	#baseline means the bottom of text is on where the center point is vertically
-	#center)baseline means slightly lower than center point 
-	#ax4.set_anchor("N") 
-	ax4.text(length/3,length/length,"sector 2",va="center",ha="left",rotation=0)
-	ax4.text(length/3,-length/length,"sector 3",va="center",ha="left",rotation=0)
-	ax4.text(-length/3,length/length,"sector 7",va="center",ha="right",rotation=0)
-	ax4.text(-length/3,-length/length,"sector 6",va="center",ha="right",rotation=0)
-	ax4.text(length/4,length-length*0.55,"sector 1",va="center",ha="right",rotation=0)
-	ax4.text(-length/4,length-length*0.55,"sector 8",va="center",ha="left",rotation=0)
-	ax4.text(-length/4,-length+length*0.55,"sector 5",va="center",ha="left",rotation=0)
-	ax4.text(length/4,-length+length*0.55,"sector 4",va="center",ha="right",rotation=0)
-	#add all the patches (or shape, i.e. polygon, circle, wedge, etc) 
-	ax4.add_patch(originPoint)
-	ax4.add_patch(kaonring)
-	ax4.add_patch(protonring)
-	ax4.add_patch(pionring)
-	ax4.add_patch(rightwedge)
-	ax4.add_patch(leftwedge)
-	ax4.add_patch(upwedge)
-	ax4.add_patch(downwedge)
-	ax4.add_patch(maxring)
-	ax4.add_patch(minring)
-	#edit the axis
-	ax4.set_xscale("linear") 
-	ax4.set_yscale("linear")
-	ax4.set_ylabel("y in cm")
-	ax4.set_xlabel("x in cm")
-	ax4.set_ylim(ymin=-length,ymax=length)
-	ax4.set_xlim(xmin=-length,xmax=length)
-	ax4.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))	
-	ax4.legend(loc="best", prop={'size':7}) 
-	#end of fig4
+		#perform the selected pressure alignment (rings graph)
+	elif doScan == 1:
+		print("\tPerforming Pressure Selection:")
+		kaonring,up1,down1,left1,right1 = pressureSelection(1,mka,num1,color1,name1)
+		protonring,up2,down2,left2,right2= pressureSelection(2,mpr,num2,color2,name2)
+		pionring,up3,down3,left3,right3= pressureSelection(3,mpi,num3,color3,name3)
+		#get the total asymmetries include all three particles
+		totup = up1+up2+up3
+		totdown = down1+down2+down3
+		totleft = left1+left2+left3
+		totright = right1+right2+right3
+		totnum = totup+totdown+totleft+totright
+		print("\tfor total")
+		print("up: ",totup)
+		print("down: ",totdown)
+		print("left: ",totleft)
+		print("right: ",totright)
+		getAsymmetries(totup,totdown,totleft,totright,totnum)
+		#create the rings graph
+		#NOTE: all radii for fig4 have 5 cm removed to make scaling better for visual
+		#start of fig4 (for single pressure, NOT for pressure scan or monte carlo) 
+		fig4,ax4 = plt.subplots(1,1) 
+		originPoint= circle((0,0),0.05,fill=True,color="black",alpha=1)
+		maxring = circle((-x_off,-y_off),r_max-5,fill=False,color="black",label="ringlike aperture",alpha=1)
+		minring = circle((-x_off,-y_off),r_min-5,fill=False,color="black",alpha=1)
+		#plot borders to segregate the sectors 
+		length = int(r_max)-3
+		xpos = [-length,length]
+		ypos = [-length,length]
+		xneg = [length,-length]
+		yneg = [-length,length] 
+		xhor = [-length,length]
+		yhor = [0,0]
+		xver = [0,0]
+		yver = [-length,length]
+		ax4.plot(xpos,ypos,linestyle="dashed",color="black") 
+		ax4.plot(xneg,yneg,linestyle="dashed",color="black") 
+		ax4.plot(xhor,yhor,linestyle="dashed",color="black") 
+		ax4.plot(xver,yver,linestyle="dashed",color="black") 
+		#create wedges (sectors of left right up and down)
+		rightwedge = wedge((0,0),length/4,-45,45,width=None,color="red",label="right",alpha=0.2)
+		leftwedge = wedge((0,0),length/4,135,225,width=None,color="green",label="left",alpha=0.2)
+		upwedge = wedge((0,0),length/4,45,135,width=None,color="blue",label="up",alpha=0.2)
+		downwedge = wedge((0,0),length/4,225,315,width=None,color="orange",label="down",alpha=0.2)
+		#label each sector
+		#by default text is written from the upper right of each text position point 
+		#horizontal alignment (ha) = center, right, left
+		#center on the point, right of the point, or left of the point, horizontally  
+		#vertical alignment = center, top, bottom, baseline, center_baseline
+		#center on the point, top of point, bottom of point vertically 
+		#baseline means the bottom of text is on where the center point is vertically
+		#center)baseline means slightly lower than center point 
+		#ax4.set_anchor("N") 
+		ax4.text(length/3,length/length,"sector 2",va="center",ha="left",rotation=0)
+		ax4.text(length/3,-length/length,"sector 3",va="center",ha="left",rotation=0)
+		ax4.text(-length/3,length/length,"sector 7",va="center",ha="right",rotation=0)
+		ax4.text(-length/3,-length/length,"sector 6",va="center",ha="right",rotation=0)
+		ax4.text(length/4,length-length*0.55,"sector 1",va="center",ha="right",rotation=0)
+		ax4.text(-length/4,length-length*0.55,"sector 8",va="center",ha="left",rotation=0)
+		ax4.text(-length/4,-length+length*0.55,"sector 5",va="center",ha="left",rotation=0)
+		ax4.text(length/4,-length+length*0.55,"sector 4",va="center",ha="right",rotation=0)
+		#add all the patches (or shape, i.e. polygon, circle, wedge, etc) 
+		ax4.add_patch(originPoint)
+		ax4.add_patch(kaonring)
+		ax4.add_patch(protonring)
+		ax4.add_patch(pionring)
+		ax4.add_patch(rightwedge)
+		ax4.add_patch(leftwedge)
+		ax4.add_patch(upwedge)
+		ax4.add_patch(downwedge)
+		ax4.add_patch(maxring)
+		ax4.add_patch(minring)
+		#edit the axis
+		ax4.set_xscale("linear") 
+		ax4.set_yscale("linear")
+		ax4.set_ylabel("y in cm")
+		ax4.set_xlabel("x in cm")
+		ax4.set_ylim(ymin=-length,ymax=length)
+		ax4.set_xlim(xmin=-length,xmax=length)
+		ax4.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))	
+		ax4.legend(loc="best", prop={'size':7}) 
+		#end of fig4
 
-	#perform the diaphragm scan
-	#want to replicate Fig 6.5 page 156 from "Leptonic Decays and Kaon Identification at the NA62 Experiment at CERN"
-	#by Angela Romano, thesis submitted to the Univerisyt of Birmingham for the degree of Doctor of Philosophy 
-	#as width increased from 0.4 mm to 2 mm 
-	#P = P_max of the pion peak 
-if doScan == 2:
-	print("\tPerforming Diaphragm Scan:")
-	'''
-	#perform pressure scan of pion 
-	_,_,vec6p3,_,_= pressureScan(3,vec3,mpi,num3,vec5p3,vec6p3,vec7p3,vec8p3)
-	#get the frequency at the peak 
-	#get the pressure at the peak
-	peak3 = where(vec6p3 == max(vec6p3)) #returns a list from the array 
-	peak3_index = peak3[0][0] #get the list then return the elemenet of the list  
-	print("peak index:",peak3_index)
-	'''
-	P_select = 1.75E+6 #baryes 1.75 bar
-	num6p3 = max(vec6p3)
-	width_min = 0.0 #cm  
-	width_max = 0.2 #cm  
-	#print the set parameters 
-	print("peak frequency: ",num6p3)
-	print("peak pressure:",P_select/1E+6,"bar")
-	print("min width: ",width_min)
-	print("max width: ",width_max)
-	#perform the diaphragm scan at the selected pressure (pressure at the peak)
-	widthVal, numCoin = diaphragmScan(width_min,width_max,mka)
-	'''
-	 #create the single histogram for pion 6+ coincidence 
-	#to confirm the numbers 
-	fig2, ax2 = plt.subplots(1,1)
-	ax2.bar(bins,vec6p3,width=step,label="6+",color='darkred')
-	ax2.set_xlabel("pressure (Ba)")
-	ax2.set_ylabel("frequency")
-	ax2.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))
-	ax2.legend(loc="best") 
-	'''
-	#create the effifiency vs width plot
-	fig5, ax5 = plt.subplots(1,1)
-	ax5.plot(widthVal,numCoin)
-	ax5.set_xlabel("diaphragm width (cm)")
-	ax5.set_ylabel("number of coincidences")
-	ax5.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))	
+		#perform the diaphragm scan
+		#want to replicate Fig 6.5 page 156 from "Leptonic Decays and Kaon Identification at the NA62 Experiment at CERN"
+		#by Angela Romano, thesis submitted to the Univerisyt of Birmingham for the degree of Doctor of Philosophy 
+		#as width increased from 0.4 mm to 2 mm 
+		#P = P_max of the pion peak 
+	if doScan == 2:
+		print("\tPerforming Diaphragm Scan:")
+		'''
+		#perform pressure scan of pion 
+		_,_,vec6p3,_,_= pressureScan(3,vec3,mpi,num3,vec5p3,vec6p3,vec7p3,vec8p3)
+		#get the frequency at the peak 
+		#get the pressure at the peak
+		peak3 = where(vec6p3 == max(vec6p3)) #returns a list from the array 
+		peak3_index = peak3[0][0] #get the list then return the elemenet of the list  
+		print("peak index:",peak3_index)
+		'''
+		P_select = 1.75E+6 #baryes 1.75 bar
+		num6p3 = max(vec6p3)
+		width_min = 0.0 #cm  
+		width_max = 0.2 #cm  
+		#print the set parameters 
+		print("peak frequency: ",num6p3)
+		print("peak pressure:",P_select/1E+6,"bar")
+		print("min width: ",width_min)
+		print("max width: ",width_max)
+		#perform the diaphragm scan at the selected pressure (pressure at the peak)
+		widthVal, numCoin = diaphragmScan(width_min,width_max,mka)
+		'''
+		#create the single histogram for pion 6+ coincidence 
+		#to confirm the numbers 
+		fig2, ax2 = plt.subplots(1,1)
+		ax2.bar(bins,vec6p3,width=step,label="6+",color='darkred')
+		ax2.set_xlabel("pressure (Ba)")
+		ax2.set_ylabel("frequency")
+		ax2.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))
+		ax2.legend(loc="best") 
+		'''
+		#create the effifiency vs width plot
+		fig5, ax5 = plt.subplots(1,1)
+		ax5.plot(widthVal,numCoin)
+		ax5.set_xlabel("diaphragm width (cm)")
+		ax5.set_ylabel("number of coincidences")
+		ax5.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))	
+		plt.show()
+
+		#perform photon scan
+	if doScan == 3:
+		print("\tPerforming Photon Scan")
+		print("Number of photons:",numPhos)
+		print("Number of rings per photon:",numRings)
+		print("bins:",bins_Gscan)
+		numPVec = arange(1,numPhos+1) #from 1 to numPhos
+		photonScan(numPhos,numRings,gen_single,numPVec)
+
+		#stop timer
+	print("\n\tRun time:")
+	print("%s seconds" % (time.time()-start_time))
+	print("%s minutes" % ((time.time()-start_time)/60))
 	plt.show()
-
-	#perform photon scan
-if doScan == 3:
-	numP = int(18) #number of photons
-	numRings = 1000 #number of rings to generate per photon 
-	bins_Gscan = 100 
-	gen_single = 0 #to generate histogram for single numG else, generate histogram for many numG  
-	print("\tPerforming Photon Scan")
-	print("Number of photons:",numP)
-	print("Number of rings per photon:",numRings)
-	print("bins:",bins_Gscan)
-	numPVec = arange(1,numP+1) #from 1 to numP
-	photonScan(numP,numRings,gen_single,numPVec)
-
-
-	#stop timer
-print("\n\tRun time:")
-print("%s seconds" % (time.time()-start_time))
-print("%s minutes" % ((time.time()-start_time)/60))
-#plt.show()

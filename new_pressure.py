@@ -33,8 +33,6 @@ from matplotlib.lines import Line2D as line
 #computation 
 #stop timer 
 
-	#start timer
-start_time = time.time()
 
 
 	#declare all functions
@@ -344,7 +342,7 @@ def photonScan(numG,numR,bool,numG_array):
 		bins_c,val_c,_ = ax6[0].hist(coin_array,bins_Gscan)
 		x_max1 = max(val_c)
 		y_max1 = max(bins_c)
-		print("sector max:",x_max1,",",y_max1)
+		#print("sector max:",x_max1,",",y_max1)
 		ax6[0].annotate("numG: %i" % num,(x_max1*0.9,y_max1*0.9),ha='center',va='center')
 		ax6[0].set_xlabel("Number of sectors")
 		ax6[0].set_ylabel("Frequency")
@@ -352,10 +350,9 @@ def photonScan(numG,numR,bool,numG_array):
 		bins_t,val_t,_ = ax6[1].hist(time_array,bins_Gscan)
 		x_max2 = max(val_t)
 		y_max2 = max(bins_t)
-		print("time max:",x_max2,",",y_max2)
+		#print("time max:",x_max2,",",y_max2)
 		ax6[1].annotate("numG: %i" % num,(x_max2*0.8,y_max2*0.9),ha='center',va='center')
 		ax6[1].set_xlabel("Time (ps)")
-
 	#mode 2: use outputs from many histograms and many numG to create 2D histogram
 	else: 	
 		#generate 2D histograms for many numG 
@@ -374,9 +371,6 @@ def photonScan(numG,numR,bool,numG_array):
 		#reshape the coin and time arrays 
 		#coin_array = reshape(coin_array,(numG,-1))
 		#time_array = reshape(time_array,(numG,-1))
-		print("coin shape:",shape(coin_array))
-		print("time shape:",shape(time_array))
-		print("output numG shape:",shape(output_numG_array))
 		#create the time 2D histogram 
 		_,_,_,im0 = ax6[0].hist2d(output_numG_array,time_array) 
 		ax6[0].set_xlabel("Number of photons")
@@ -480,28 +474,39 @@ def emptyStrChecker(bool,isBinary = 1):
 			bool = input("Please enter an integer or float value: ")
 	return bool 
 
-'''
 #check whether a value is a float/integer or not
 def intFloatChecker(value,isInt):
-	while type(value) != type(1):
-		print("\nWARNING: Invalid input")
-		if isInt == 1:
+	if isInt == 1:
+		try:
+			value = int(value)
+		except:
+			value = "bob"
+		while type(value) != type(1):
+			print("\nWARNING: Invalid input")
 			value = input("Please enter an integer value: ")
+			value = emptyStrChecker(value,0)
 			try:
 				value = int(value)
 			except:
 				value = "bob"
-		if isInt == 0: 
+	if isInt != 1:
+		try:
+			value = float(value)
+		except:
+			value = "bob"
+		while type(value) != type(0.5):
+			print("\nWARNING: Invalid input")
 			value = input("Please enter an float value: ")
+			value = emptyStrChecker(value,0)
 			try:
 				value = float(value)
 			except:
 				value = "bob"
 	return value 
-'''
 
+#commandline inputs for parameters 
 def controlPanel(inLoop):
-	print("\n\tWelcome!")
+	print("\n\n\tWelcome!")
 	print("\nFor the following questions please enter 1 or 0 for yes or no respective:")
 	#need to convert the input string to an integer or float 
 	inLoop = input("Do you want to continue: ")
@@ -524,51 +529,96 @@ def controlPanel(inLoop):
 		if on_editing == 1: 
 			if on_xoff == 1:
 				global x_off #access global var outside of controlpanel 
-				x_off = input("Enter the value for x_off: ")
+				print("\nNOTE: aperture offset is opposite of the photons offset in centimeters")
+				x_off = input("Enter value for the photons x offset: ")
 				x_off = emptyStrChecker(x_off,0)
-				#x_off = intFloatChecker(x_off,0) #FIX ME!!!!!!!!!!!! 
+				x_off = intFloatChecker(x_off,0) 
 			if on_yoff == 1:
 				global y_off
-				y_off = float(input("Enter value for y_off: "))
+				print("\nNOTE: aperture offset is opposite of the photons offset in centimeters")
+				y_off = input("Enter value for the photon rings y offset: ")
+				y_off = emptyStrChecker(y_off,0)
+				y_off = intFloatChecker(y_off,0)
 			if on_sigma == 1:
 				global sigma 
-				sigma = float(input("Enter value for sigma: "))
+				print("\nNOTE: std is the smearing of the photons from the particles' rings in centimeters")
+				sigma = input("Enter value for the standard deviation: ")
+				sigma = emptyStrChecker(sigma,0)
+				sigma = intFloatChecker(sigma,0)
 			if on_T == 1:
 				global T
-				T = float(input("Enter value for T: "))
+				print("\nNOTE: temperature of the gas in kelvin")
+				T = input("Enter value for temperature: ")
+				T = emptyStrChecker(T,0)
+				T = intFloatChecker(T,0)
 			if on_l == 1:
 				global l
-				l = float(input("Enter value for l: "))
+				print("\nNOTE: length of the 'cone' in centimeters")
+				l = input("Enter value for length: ")
+				l = emptyStrChecker(l,0)
+				l = intFloatChecker(l,0)
 			if on_PselectN2 == 1:
 				global P_selectN2
-				P_selectN2 = float(input("enter a value for P_selectN2: "))
+				print("\nNOTE: pressure for N2 gas in baryes where 1E+6 baryes = 1 bar")
+				P_selectN2 = input("Enter value for the pressure of nitrogen: ")
+				P_selectN2 = emptyStrChecker(P_selectN2,0)
+				P_selectN2 = intFloatChecker(P_selectN2,0)
 			if on_PselectH2 == 1:
 				global P_selectH2
-				P_selectH2 = float(input("Enter value for P_selectH2: "))
+				print("\nNOTE: pressure for H2 gas in baryes where 1E+6 baryes = 1 bar")
+				P_selectH2 = input("Enter value for the pressure of hydrogen: ")
+				P_selectH2 = emptyStrChecker(P_selectH2,0)
+				P_selectH2 = intFloatChecker(P_selectH2,0)
 			if on_NumPress == 1:
 				global NumPress
-				NumPress = int(input("Enter value for NumPress: "))
+				print("\nNOTE: number of pressures to generate for the pressure scan")
+				NumPress = input("Enter value for number of pressures: ")
+				NumPress = emptyStrChecker(P_selectH2,0)
+				NumPress = intFloatChecker(NumPress,1)
 			if on_useN2 == 1:
 				global useN2
-				useN2 = int(input("Enter a value for useN2: "))
+				print("\nNOTE: useN2 is 1 for using N2 gas or 0 for using H2 gas")
+				useN2 = input("Enter value for useN2: ")
+				useN2 = emptyStrChecker(useN2,0)
+				useN2 = intFloatChecker(useN2,1)
 			if on_doScan == 1:
-				doScan = int(input("Enter a value for doScan: "))
+				print("\nNOTE: doScan is one of the following: ")
+				print("0 for pressure scan")
+				print("1 for pressure selection (alignment)")
+				print("2 for diaphragm scan")
+				print("3 for photon scan")
+				doScan = input("Enter value for doScan: ")
+				doScan = emptyStrChecker(doScan,0)
+				doScan = intFloatChecker(doScan,1)
 			if on_numPhos == 1:
 				global numPhos
-				numPhos = int(input("Enter a value for numPhos: "))
+				print("\nNOTE: the number of photons for the photon scan")
+				numPhos = input("Enter value for number of photons: ")
+				numPhos = emptyStrChecker(numPhos,0)
+				numPhos = intFloatChecker(numPhos,1)
 			if on_numRings == 1:
 				global numRings
-				numRings = int(input("Enter a value for numRings: "))
+				print("\nNOTE: number of rings per photon for the photon scan")
+				numRings = input("Enter value for number of rings: ")
+				numRings = emptyStrChecker(numRings,0)
+				numRings = intFloatChecker(numRings,1)
 			if on_binsGScan == 1:
 				global bins_Gscan
-				bins_Gscan = int(input("Enter a value for bins_Gscan: "))
+				print("\nNOTE: number of bins for the photon scan")
+				bins_Gscan = input("Enter value for bins: ")
+				bins_Gscan = emptyStrChecker(bins_Gscan,0)
+				bins_Gscan = intFloatChecker(bins_Gscan,1)
 			if on_genSingle == 1:
 				global gen_single
-				gen_single = int(input("Enter a value for gen_single: "))
+				print("\nNOTE: gen_single is 1 to generate graphs for 1 number of photons or 0 to generate graphs of many numbers of photons")
+				gen_single = input("Enter value for gen_single: ")
+				gen_single = emptyStrChecker(gen_single,0)
+				gen_single = intFloatChecker(gen_single,1)
 			print("\n")
 		if on_editing == 0:
 			print("Using default parameters\n")
 	return inLoop 
+
 
 
 
@@ -583,15 +633,17 @@ def controlPanel(inLoop):
 
 
 
+
 	#declare unfixed parameters
 insideLoop = 1
 x_off = 0.0 #cm shift in x of the photons (opposite of shifting the aperture)
 y_off = 0.0 #cm shift in y of the photons (opposite of shifting the aperture)
-sigma = 0.02 #cm smearing of photons per particle ring
+sigma = 0.2 #cm smearing of photons per particle ring
+#originally sigma was 0.02 cm 
 T = 293 #K 
 l = 300 #cm or 3m distance of cone 
 P_selectN2 = 1.8E+6 #baryes or 1.8 bar the selected pressure 
-P_selectH2 = 3.7E+6 #baryes or 1.8 bar the selected pressure 
+P_selectH2 = 3.7E+6 #baryes or 3.7 bar the selected pressure 
 NumPress = int(2E+2) #number of pressures to generate for the pressure scan
 useN2 = 1 #1 means use N2 gas while 0 means use H2 gas  
 doScan = 3
@@ -604,7 +656,7 @@ doScan = 3
 numPhos = int(18) #number of photons
 numRings = 1000 #number of rings to generate per photon 
 bins_Gscan = 100 
-gen_single = 0 #to generate histogram for single numG else, generate histogram for many numG  
+gen_single = 1 #to generate histogram for single numG else, generate histogram for many numG  
 
 	#declare fixed parameters 
 P0 = 1E+6 #baryes 1E+5 Pa 1 bar  
@@ -627,6 +679,7 @@ num1 = int(6E+2) #number of kaon rings to generate per pressure in pressure scan
 num2 = int(24E+2) #number of proton rings to generate per pressure in pressure scan
 num3 = int(70E+2) #number of pion rings to generate per pressure in pressure scan
 #pressures for each gas to set the size of the ring-like aperture 
+#these are defaults which are fixed 
 P_N2 = 1.75E+6 #baryes 1.75 bar of N2 gas 
 P_H2 = 3.8E+6 #baryes 3.8 bar of H2 gas 
 dev = 0.09 #cm deviation from kaon radius to calculate the size of ring-like aperture 
@@ -682,67 +735,6 @@ vec6p3 = zeros(NumPress)
 vec7p3 = zeros(NumPress) 
 vec8p3 = zeros(NumPress) 
 
-    #print the unfixed parameters
-print("\n\tParameters:")
-print("temperature:",T,"K")
-print("length:",l,"cm")
-print("x_off:",x_off,"cm")
-print("y_off:",y_off,"cm")
-print("sigma:",sigma,"cm") 
-print("number of steps:",NumPress)
-
-	#set parameters according to chosen gas 
-if useN2 == 1:
-	#for N2 gas 
-	print("radiator: N2")
-	#set the n0 refractive index at P0 and T0 according to the website
-	#https://refractiveindex.info/?shelf=main&book=N2&page=Borzsonyi
-	#assuming 0.42 micrometer wavelength of cherenkov radiation 
-	n0 = 1.00029910 
-	#calculate the ring-like aperature radii (inner and outer) thus the size
-	#using the kaon ring at a particular pressure as a base
-	n = index(P_N2)
-	r_kaon = radius(mka,n)
-	r_min = r_kaon - dev #minimum radius of the aperture 
-	r_max= r_kaon + dev #maximum radius of aperture 
-	width0 = r_max - r_min #aperture size i.e. width of diaphragm  
-	#set the max and min pressures for the scan 
-	P_max = int(2E+6) #baryes 2 bar 
-	P_min = int(1.6E+6) #baryes 1.6 bar
-	step = (P_max - P_min) / NumPress 
-	P_select = P_selectN2 
-
-elif useN2 == 0:
-	#for H2 gas 
-	print("radiator: H2")
-	#set the n0 refractive index at P0 and T0 according to the website 
-	#https://refractiveindex.info/?shelf=main&book=H2&page=Koch 
-	#assuming 0.42 micrometer wavelength of cherenkov radiation 
-	n0 = 1.00014231 
-	#calculate the ring-like aperature radii (inner and outer) thus the size
-	#using the kaon ring at a particular pressure as a base
-	n = index(P_H2)
-	r_kaon = radius(mka,n)
-	r_min = r_kaon - dev #minimum radius of the aperture 
-	r_max= r_kaon + dev #maximum radius of aperture 
-	width0 = r_max - r_min 
-    #set the max and min pressures for the scan 
-	P_max = int(4.35E+6) #baryes 4.4 bar 
-	P_min = int(3.55E+6) #baryes 3.55 bar
-	step = (P_max - P_min) / NumPress 
-	P_select = P_selectH2 
-
-#create bins array for all histograms
-bins1 = arange(P_min,P_max,step) 
-
-	#print the new parameters 
-print("step size:",step)
-print("r_min:",r_min,"cm")
-print("r_max:",r_max,"cm")
-print("aperture size:",width0,"cm")
-print("P_min: ",P_min/1E+6,"bar")
-print("P_max: ",P_max/1E+6,"bar")
-print("selected pressure:",P_select/1E+6,"bar\n")
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -753,10 +745,75 @@ print("selected pressure:",P_select/1E+6,"bar\n")
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #computation 
 
-while insideLoop == 1:
+	#start timer
+print("\nstarting timer\n")
+start_time = time.time()
 
+while insideLoop == 1:
+	#start loop
 	#call the controlpanel to set parameters
 	insideLoop = controlPanel(insideLoop)
+
+	#set parameters according to chosen gas 
+	if doScan==0 or doScan==1 or doScan==2 or doScan==3:
+		if useN2 == 1:
+			#for N2 gas 
+			print("\n\tParameters:")
+			print("radiator: N2")
+			#set the n0 refractive index at P0 and T0 according to the website
+			#https://refractiveindex.info/?shelf=main&book=N2&page=Borzsonyi
+			#assuming 0.42 micrometer wavelength of cherenkov radiation 
+			n0 = 1.00029910 
+			#calculate the ring-like aperature radii (inner and outer) thus the size
+			#using the kaon ring at a particular pressure as a base
+			n = index(P_N2) #use the default regardless of selected pressure
+			r_kaon = radius(mka,n)
+			r_min = r_kaon - dev #minimum radius of the aperture 
+			r_max= r_kaon + dev #maximum radius of aperture 
+			width0 = r_max - r_min #aperture size i.e. width of diaphragm  
+			#set the max and min pressures for the scan 
+			P_max = int(2E+6) #baryes 2 bar 
+			P_min = int(1.6E+6) #baryes 1.6 bar
+			step = (P_max - P_min) / NumPress 
+			P_select = P_selectN2 
+		elif useN2 == 0:
+			#for H2 gas 
+			print("\n\tParameters:")
+			print("radiator: H2")
+			#set the n0 refractive index at P0 and T0 according to the website 
+			#https://refractiveindex.info/?shelf=main&book=H2&page=Koch 
+			#assuming 0.42 micrometer wavelength of cherenkov radiation 
+			n0 = 1.00014231 
+			#calculate the ring-like aperature radii (inner and outer) thus the size
+			#using the kaon ring at a particular pressure as a base
+			n = index(P_H2) #use the default regardless of selected pressure 
+			r_kaon = radius(mka,n)
+			r_min = r_kaon - dev #minimum radius of the aperture 
+			r_max= r_kaon + dev #maximum radius of aperture 
+			width0 = r_max - r_min 
+			#set the max and min pressures for the scan 
+			P_max = int(4.35E+6) #baryes 4.4 bar 
+			P_min = int(3.55E+6) #baryes 3.55 bar
+			step = (P_max - P_min) / NumPress 
+			P_select = P_selectH2 
+		#create bins array for all histograms
+		bins1 = arange(P_min,P_max,step) 
+		#print the unfixed parameters
+		print("temperature:",T,"K")
+		print("length:",l,"cm")
+		print("x_off:",x_off,"cm")
+		print("y_off:",y_off,"cm")
+		print("sigma:",sigma,"cm") 
+		print("number of steps:",NumPress)
+		#print the new parameters 
+		print("step size:",step)
+		print("r_min:",r_min,"cm")
+		print("r_max:",r_max,"cm")
+		print("aperture size:",width0,"cm")
+		print("P_min: ",P_min/1E+6,"bar")
+		print("P_max: ",P_max/1E+6,"bar")
+		print("selected pressure:",P_select/1E+6,"bar\n")
+
 
 	#perform the pressure scan
 	if doScan == 0:
@@ -794,6 +851,7 @@ while insideLoop == 1:
 		ax3.set_ylabel("frequency")
 		ax3.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))
 		ax3.legend(loc="best") 
+
 
 		#perform the selected pressure alignment (rings graph)
 	elif doScan == 1:
@@ -878,6 +936,7 @@ while insideLoop == 1:
 		ax4.legend(loc="best", prop={'size':7}) 
 		#end of fig4
 
+
 		#perform the diaphragm scan
 		#want to replicate Fig 6.5 page 156 from "Leptonic Decays and Kaon Identification at the NA62 Experiment at CERN"
 		#by Angela Romano, thesis submitted to the Univerisyt of Birmingham for the degree of Doctor of Philosophy 
@@ -923,6 +982,7 @@ while insideLoop == 1:
 		ax5.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))	
 		plt.show()
 
+
 		#perform photon scan
 	if doScan == 3:
 		print("\tPerforming Photon Scan")
@@ -937,3 +997,4 @@ while insideLoop == 1:
 	print("%s seconds" % (time.time()-start_time))
 	print("%s minutes" % ((time.time()-start_time)/60))
 	plt.show()
+	#end of loop 

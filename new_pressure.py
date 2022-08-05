@@ -1,5 +1,4 @@
 #import necessary modules 
-from os import POSIX_SPAWN_OPEN
 import random as rnd 
 import time
 import matplotlib.pyplot as plt 
@@ -402,6 +401,14 @@ def settings():
 	on_sigma = input("on_sigma: ")
 	on_sigma = emptyStrChecker(on_sigma)
 	on_sigma = boolChecker(on_sigma)
+	global on_useN2
+	on_useN2 = input("on_useN2: ")
+	on_useN2 = emptyStrChecker(on_useN2)
+	on_useN2 = boolChecker(on_useN2)
+	global on_doScan
+	on_doScan = input("on_doScan: ")
+	on_doScan = emptyStrChecker(on_doScan)
+	on_doScan = boolChecker(on_doScan)
 	global on_T
 	on_T = input("on_T: ")
 	on_T = emptyStrChecker(on_T)
@@ -422,14 +429,6 @@ def settings():
 	on_NumPress = input("on_NumPress: ")
 	on_NumPress = emptyStrChecker(on_NumPress)
 	on_NumPress = boolChecker(on_NumPress)
-	global on_useN2
-	on_useN2 = input("on_useN2: ")
-	on_useN2 = emptyStrChecker(on_useN2)
-	on_useN2 = boolChecker(on_useN2)
-	global on_doScan
-	on_doScan = input("on_doScan: ")
-	on_doScan = emptyStrChecker(on_doScan)
-	on_doScan = boolChecker(on_doScan)
 	global on_numPhos
 	on_numPhos = input("on_numPhos: ")
 	on_numPhos = emptyStrChecker(on_numPhos)
@@ -545,6 +544,21 @@ def controlPanel(inLoop):
 				sigma = input("Enter value for the standard deviation: ")
 				sigma = emptyStrChecker(sigma,0)
 				sigma = intFloatChecker(sigma,0)
+			if on_useN2 == 1:
+				global useN2
+				print("\nNOTE: useN2 is 1 for using N2 gas or 0 for using H2 gas")
+				useN2 = input("Enter value for useN2: ")
+				useN2 = emptyStrChecker(useN2,0)
+				useN2 = intFloatChecker(useN2,1)
+			if on_doScan == 1:
+				print("\nNOTE: doScan is one of the following: ")
+				print("0 for pressure scan")
+				print("1 for pressure selection (alignment)")
+				print("2 for diaphragm scan")
+				print("3 for photon scan")
+				doScan = input("Enter value for doScan: ")
+				doScan = emptyStrChecker(doScan,0)
+				doScan = intFloatChecker(doScan,1)
 			if on_T == 1:
 				global T
 				print("\nNOTE: temperature of the gas in kelvin")
@@ -575,21 +589,7 @@ def controlPanel(inLoop):
 				NumPress = input("Enter value for number of pressures: ")
 				NumPress = emptyStrChecker(P_selectH2,0)
 				NumPress = intFloatChecker(NumPress,1)
-			if on_useN2 == 1:
-				global useN2
-				print("\nNOTE: useN2 is 1 for using N2 gas or 0 for using H2 gas")
-				useN2 = input("Enter value for useN2: ")
-				useN2 = emptyStrChecker(useN2,0)
-				useN2 = intFloatChecker(useN2,1)
-			if on_doScan == 1:
-				print("\nNOTE: doScan is one of the following: ")
-				print("0 for pressure scan")
-				print("1 for pressure selection (alignment)")
-				print("2 for diaphragm scan")
-				print("3 for photon scan")
-				doScan = input("Enter value for doScan: ")
-				doScan = emptyStrChecker(doScan,0)
-				doScan = intFloatChecker(doScan,1)
+			
 			if on_numPhos == 1:
 				global numPhos
 				print("\nNOTE: the number of photons for the photon scan")
@@ -638,7 +638,7 @@ def controlPanel(inLoop):
 insideLoop = 1
 x_off = 0.0 #cm shift in x of the photons (opposite of shifting the aperture)
 y_off = 0.0 #cm shift in y of the photons (opposite of shifting the aperture)
-sigma = 0.2 #cm smearing of photons per particle ring
+sigma = 0.01 #cm smearing of photons per particle ring
 #originally sigma was 0.02 cm 
 T = 293 #K 
 l = 300 #cm or 3m distance of cone 
@@ -711,30 +711,6 @@ on_PselectH2 = 1
 n = 1 #index of refraction will be changed by changing pressure via refractive index 
 P = 1E+6 #baryes 1 bar
 r = 0 #radius of ring
-#for 1,2,3 or kaon, proton, pion respectively 
-stat1 = 0 #boolean that is either 1 or 0 depending if the ring is in the boundary or not respectively
-stat2 = 0 
-stat3 = 0
-#create zeros numpy arrays for the histograms 
-#array of frequencies of pressures for each particle  
-vec1 = zeros(NumPress) 
-vec2 = zeros(NumPress) 
-vec3 = zeros(NumPress) 
-#array of Nc 5+, 6+, 7+, 8 for each particle  
-#Nc denotes number of coincidences 
-vec5p1 = zeros(NumPress) 
-vec6p1 = zeros(NumPress) 
-vec7p1 = zeros(NumPress) 
-vec8p1 = zeros(NumPress) 
-vec5p2 = zeros(NumPress) 
-vec6p2 = zeros(NumPress) 
-vec7p2 = zeros(NumPress) 
-vec8p2 = zeros(NumPress) 
-vec5p3 = zeros(NumPress) 
-vec6p3 = zeros(NumPress) 
-vec7p3 = zeros(NumPress) 
-vec8p3 = zeros(NumPress) 
-
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -745,21 +721,48 @@ vec8p3 = zeros(NumPress)
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #computation 
 
-	#start timer
-print("\nstarting timer\n")
-start_time = time.time()
 
 while insideLoop == 1:
 	#start loop
 	#call the controlpanel to set parameters
 	insideLoop = controlPanel(insideLoop)
 
+	#start timer
+	print("\nstarting timer\n")
+	start_time = time.time()
+	
+	#initialization of the booleans and numpy arrays (in order for the loop to work multiple times)
+	#for 1,2,3 or kaon, proton, pion respectively 
+	stat1 = 0 #boolean that is either 1 or 0 depending if the ring is in the boundary or not respectively
+	stat2 = 0 
+	stat3 = 0
+	#create zeros numpy arrays for the histograms 
+	#array of frequencies of pressures for each particle  
+	vec1 = zeros(NumPress) 
+	vec2 = zeros(NumPress) 
+	vec3 = zeros(NumPress) 
+	#array of Nc 5+, 6+, 7+, 8 for each particle  
+	#Nc denotes number of coincidences 
+	vec5p1 = zeros(NumPress) 
+	vec6p1 = zeros(NumPress) 
+	vec7p1 = zeros(NumPress) 
+	vec8p1 = zeros(NumPress) 
+	vec5p2 = zeros(NumPress) 
+	vec6p2 = zeros(NumPress) 
+	vec7p2 = zeros(NumPress) 
+	vec8p2 = zeros(NumPress) 
+	vec5p3 = zeros(NumPress) 
+	vec6p3 = zeros(NumPress) 
+	vec7p3 = zeros(NumPress) 
+	vec8p3 = zeros(NumPress) 
+
 	#set parameters according to chosen gas 
 	if doScan==0 or doScan==1 or doScan==2 or doScan==3:
 		if useN2 == 1:
 			#for N2 gas 
+			radiator = "N2"
 			print("\n\tParameters:")
-			print("radiator: N2")
+			print("radiator:",radiator)
 			#set the n0 refractive index at P0 and T0 according to the website
 			#https://refractiveindex.info/?shelf=main&book=N2&page=Borzsonyi
 			#assuming 0.42 micrometer wavelength of cherenkov radiation 
@@ -778,6 +781,7 @@ while insideLoop == 1:
 			P_select = P_selectN2 
 		elif useN2 == 0:
 			#for H2 gas 
+			radiator = "H2"
 			print("\n\tParameters:")
 			print("radiator: H2")
 			#set the n0 refractive index at P0 and T0 according to the website 
@@ -796,8 +800,10 @@ while insideLoop == 1:
 			P_min = int(3.55E+6) #baryes 3.55 bar
 			step = (P_max - P_min) / NumPress 
 			P_select = P_selectH2 
+
 		#create bins array for all histograms
 		bins1 = arange(P_min,P_max,step) 
+
 		#print the unfixed parameters
 		print("temperature:",T,"K")
 		print("length:",l,"cm")
@@ -849,7 +855,7 @@ while insideLoop == 1:
 		ax3.bar(bins1,vec8p3,width=step,color='cyan')
 		ax3.set_xlabel("pressure (Ba)")
 		ax3.set_ylabel("frequency")
-		ax3.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))
+		ax3.set_title("x_off: %fcm y_off: %fcm std: %fcm gas: %s" % (x_off,y_off,sigma,radiator))
 		ax3.legend(loc="best") 
 
 
@@ -932,7 +938,7 @@ while insideLoop == 1:
 		ax4.set_xlabel("x in cm")
 		ax4.set_ylim(ymin=-length,ymax=length)
 		ax4.set_xlim(xmin=-length,xmax=length)
-		ax4.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))	
+		ax4.set_title("x_off: %fcm y_off: %fcm std: %fcm gas: %s" % (x_off,y_off,sigma,radiator))	
 		ax4.legend(loc="best", prop={'size':7}) 
 		#end of fig4
 
@@ -979,7 +985,7 @@ while insideLoop == 1:
 		ax5.plot(widthVal,numCoin)
 		ax5.set_xlabel("diaphragm width (cm)")
 		ax5.set_ylabel("number of coincidences")
-		ax5.set_title("x_off: %fcm y_off: %fcm std: %fcm" % (x_off,y_off,sigma))	
+		ax5.set_title("x_off: %fcm y_off: %fcm std: %fcm, gas: %s" % (x_off,y_off,sigma,radiator))	
 		plt.show()
 
 

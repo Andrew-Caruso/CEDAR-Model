@@ -73,8 +73,12 @@ def photonGeneration(r,m,a_min,a_max,numG):
 	numG = rand.poisson(numG) #number of photons for the time resolution from a poission distribution located a numG instead of using rand numbers 
 	tres1 = 280 #picoseconds, time resolution for 1 photon, 280 ps  
 	mu1 = 0 #mean for normal/gaussian distribution   
-	tres = tres1 / sqrt(n) #time resolution for any number of photons 
-	t = rand.normal(mu1,tres) #mean of zero, std of the time resolution (given an numG)
+	if numG != 0: 
+		tres = tres1 / sqrt(numG) #time resolution for any number of photons 
+		t = rand.normal(mu1,tres) #mean of zero, std of the time resolution (given an numG)
+	else:
+		tres = None  
+		t = None
 
 		#for the diaphragm scan, pressure scan, and the pressure selection  
 	chart = zeros(8) #index = sector-1, used as binary 0 or 1 
@@ -324,7 +328,7 @@ def photonScan(numG,numR,bool,numG_array):
 	mass = mka
 	b_min = r_min
 	b_max = r_max
-	num_it = int(numG*numR) #number of iterations
+	num_it = int(numR) #number of iterations
 	print("number of interations:",num_it)
 	coin_array= zeros(num_it)  
 	time_array = zeros(num_it)	
@@ -371,13 +375,13 @@ def photonScan(numG,numR,bool,numG_array):
 		#coin_array = reshape(coin_array,(numG,-1))
 		#time_array = reshape(time_array,(numG,-1))
 		#create the time 2D histogram 
-		_,_,_,im0 = ax6[0].hist2d(output_numG_array,time_array) 
+		_,_,_,im0 = ax6[0].hist2d(output_numG_array,time_array, bins = [19,50], range = [[0,18],[-1000,1000]]) 
 		ax6[0].set_xlabel("Number of photons")
 		ax6[0].set_ylabel("Time (ps)")
 		ax6[0].set_title("Time vs Number of Photons")
 		fig6.colorbar(im0,ax=ax6[0])
 		#create the sectors @D histogram 
-		_,_,_,im1 = ax6[1].hist2d(output_numG_array,coin_array)
+		_,_,_,im1 = ax6[1].hist2d(output_numG_array,coin_array, bins = [19,8], range = [[0,18],[0,8]])
 		ax6[1].set_xlabel("Number of photons")
 		ax6[1].set_ylabel("Number of sectors")
 		ax6[1].set_title("Number of Sectors vs Number of Photons")
@@ -656,7 +660,7 @@ doScan = 3
 numPhos = int(18) #number of photons
 numRings = 1000 #number of rings to generate per photon 
 bins_Gscan = 100 
-gen_single = 1 #to generate histogram for single numG else, generate histogram for many numG  
+gen_single = 0 #to generate histogram for single numG else, generate histogram for many numG  
 
 	#declare fixed parameters 
 P0 = 1E+6 #baryes 1E+5 Pa 1 bar  

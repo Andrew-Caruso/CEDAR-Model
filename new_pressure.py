@@ -375,13 +375,27 @@ def photonScan(numG,numR,bool,numG_array):
 		#coin_array = reshape(coin_array,(numG,-1))
 		#time_array = reshape(time_array,(numG,-1))
 		#create the time 2D histogram 
-		_,_,_,im0 = ax6[0].hist2d(output_numG_array,time_array, bins = [19,50], range = [[0,18],[-1000,1000]]) 
+		a0 = int(numG+1) #initially 19
+		b0 = int(bins_Gscan/2) #initially 50
+		x00 = 0 #initially 0
+		x10 = int(numG) #initially 18
+		y00 = int(-numR/2) #initially -1000
+		y10 = int(numR/2) #initially 1000
+		a1 = int(numG) #initially 19
+		b1 = int((numG/2) - 1) #initially 8
+		x01 = 0 #initially 0
+		x11 = int(numG) #initially 18
+		y01 = 0 #initially 0
+		y11 = 8 #initially 8
+
+
+		_,_,_,im0 = ax6[0].hist2d(output_numG_array,time_array, bins = [a0,b0], range = [[x00,x10],[y00,y10]]) 
 		ax6[0].set_xlabel("Number of photons")
 		ax6[0].set_ylabel("Time (ps)")
 		ax6[0].set_title("Time vs Number of Photons")
 		fig6.colorbar(im0,ax=ax6[0])
 		#create the sectors @D histogram 
-		_,_,_,im1 = ax6[1].hist2d(output_numG_array,coin_array, bins = [19,8], range = [[0,18],[0,8]])
+		_,_,_,im1 = ax6[1].hist2d(output_numG_array,coin_array, bins = [a1,b1], range = [[x01,x11],[y01,y11]])
 		ax6[1].set_xlabel("Number of photons")
 		ax6[1].set_ylabel("Number of sectors")
 		ax6[1].set_title("Number of Sectors vs Number of Photons")
@@ -445,7 +459,7 @@ def settings():
 	on_binsGScan = input("on_binsGScan: ")
 	on_binsGScan = boolChecker(on_binsGScan)
 	global on_genSingle
-	on_genSingle = input("on_genSigle: ")
+	on_genSingle = input("on_genSingle: ")
 	on_genSingle = emptyStrChecker(on_genSingle)
 	on_genSingle = boolChecker(on_genSingle)
 	return 0

@@ -173,6 +173,11 @@ def getAsymmetries(up,down,left,right,totalcount):
 	print("down ratio:",ratiodown)
 	print("left ratio:",ratioleft)
 	print("right ratio:",ratioright)
+	#test here
+	zonesum = up + down + right + left
+	if totalcount != 0:
+		print("totcount:",totalcount)
+		print("zonesum:",zonesum)
 	return 0 
 
 #calculate the refractive index 
@@ -381,7 +386,7 @@ def photonScan(numG,numR,bool,numG_array):
 		x10 = int(numG) #initially 18
 		y00 = int(-numR/2) #initially -1000
 		y10 = int(numR/2) #initially 1000
-		a1 = int(numG) #initially 19
+		a1 = int(numG+1) #initially 19
 		b1 = int((numG/2) - 1) #initially 8
 		x01 = 0 #initially 0
 		x11 = int(numG) #initially 18
@@ -396,6 +401,8 @@ def photonScan(numG,numR,bool,numG_array):
 		fig6.colorbar(im0,ax=ax6[0])
 		#create the sectors @D histogram 
 		_,_,_,im1 = ax6[1].hist2d(output_numG_array,coin_array, bins = [a1,b1], range = [[x01,x11],[y01,y11]])
+		print("bins:",a1,"-",b1)
+		print("numG:",numG)
 		ax6[1].set_xlabel("Number of photons")
 		ax6[1].set_ylabel("Number of sectors")
 		ax6[1].set_title("Number of Sectors vs Number of Photons")
@@ -658,7 +665,7 @@ x_off = 0.0 #cm shift in x of the photons (opposite of shifting the aperture)
 y_off = 0.0 #cm shift in y of the photons (opposite of shifting the aperture)
 sigma = 0.01 #cm smearing of photons per particle ring
 #originally sigma was 0.02 cm 
-T = 293 #K 
+T = 293.15 #K 
 l = 300 #cm or 3m distance of cone 
 P_selectN2 = 1.8E+6 #baryes or 1.8 bar the selected pressure 
 P_selectH2 = 3.7E+6 #baryes or 3.7 bar the selected pressure 

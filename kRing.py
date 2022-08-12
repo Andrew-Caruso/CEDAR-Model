@@ -11,7 +11,7 @@ p_fixed = 75E+9 #eV 75GeV/c momentum for +pi, +kaon, and proton
 mpi = 139.57039E+6 #eV 140Mev/c mass of +pi
 mka = 493.677E+6 #eV 494MeV/c mass of +kaon
 mpr = 938.27208816E+6 #eV 938MeV/c mass of proton 
-mel = 0.51099895000E+6 #eV 0.51 MeV/c mass of electron 
+mel = 0.51099895000E+6 #eV 0.51 MeV/c mass of positron 
 mmu = 105.6583755E+6 #eV 106 MeV/c mass of muon 
 c = 29979245800 #cm/s 
 hbar = 1.05457266E-27 #g cm^2 / s 
@@ -81,16 +81,16 @@ print("beta:",beta3)
 print("radius from function for proton ring:",radius(mpr,p_fixed),"cm") 
 print("radius of proton ring:",r3,"cm\n") 
 
-#for electron 
+#for positron 
 beta4 = 1 / (np.sqrt(((mel*c/p_fixed)**2)+1))
 theta4 = np.arccos(1/(n*beta4))
 r4 = l*np.tan(theta4)
-print("electron")
+print("positron")
 print("mel:",mel,"g") 
-print("speed of electron:",beta4*c/c*100,"% c")
+print("speed of positron:",beta4*c/c*100,"% c")
 print("theta:",theta4,"radians")
 print("beta:",beta4) 
-print("radius of electron ring:",r4,"cm\n") 
+print("radius of positron ring:",r4,"cm\n") 
 
 #for muon 
 '''
@@ -115,7 +115,7 @@ print("mpi:",mpi,"g"," OR 140 MeV")
 print("mka:",mka,"g"," OR 494 Mev")
 print("mpr:",mpr,"g"," OR 938 MeV\n")
 #ring radii
-print("radius of electron ring:",r4,"cm") 
+print("radius of positron ring:",r4,"cm") 
 #print("radius of muon ring:",r5,"cm") 
 print("radius of pion ring:",r2,"cm") 
 print("radius of kaon ring:",r1,"cm") 
@@ -178,7 +178,7 @@ plt.plot(p_scale,rka,label="kaon")
 plt.plot(p_scale,rpi,label="pion")
 plt.plot(p_scale,rpr,label="proton")
 #plt.plot(p_scale,rmu,label="muon")
-plt.plot(p_scale,rel,label="electron")
+plt.plot(p_scale,rel,label="positron")
 plt.xlabel("momentum (GeV)") 
 plt.ylabel("radius (cm)") 
 plt.title("radius of ring versus momentum") 

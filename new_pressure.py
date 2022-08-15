@@ -347,20 +347,26 @@ def photonScan(numG,numR,bool,numG_array):
 			numC,_,_,_,_,time= photonGeneration(radius,mass,b_min,b_max,numG)
 			coin_array[i] = numC  
 			time_array[i] = time
-		bins_c,val_c,_ = ax6[0].hist(coin_array,bins_Gscan)
+		bins_c,val_c,_ = ax6[0].hist(coin_array,bins=9,range=(0,8))
 		x_max1 = max(val_c)
 		y_max1 = max(bins_c)
-		#print("sector max:",x_max1,",",y_max1)
-		ax6[0].annotate("numG: %i" % num,(x_max1*0.9,y_max1*0.9),ha='center',va='center')
+		if numG > 1:
+			ax6[0].annotate("numG: %i" % num,(x_max1*0.15,y_max1*0.9),ha='center',va='center')
+		else: 
+			ax6[0].annotate("numG: %i" % num,(x_max1*0.85,y_max1*0.9),ha='center',va='center')
 		ax6[0].set_xlabel("Number of sectors")
 		ax6[0].set_ylabel("Frequency")
 		#create the time histogram 
-		bins_t,val_t,_ = ax6[1].hist(time_array,bins_Gscan)
+		bins_t,val_t,_ = ax6[1].hist(time_array,bins_Gscan,range=(-500,500))
 		x_max2 = max(val_t)
 		y_max2 = max(bins_t)
 		#print("time max:",x_max2,",",y_max2)
-		ax6[1].annotate("numG: %i" % num,(x_max2*0.8,y_max2*0.9),ha='center',va='center')
+		if numG > 99:
+			ax6[1].annotate("numG: %i" % num,(x_max2*0.7,y_max2*0.9),ha='center',va='center')
+		else:
+			ax6[1].annotate("numG: %i" % num,(x_max2*0.75,y_max2*0.9),ha='center',va='center')
 		ax6[1].set_xlabel("Time (ps)")
+		print("bins_Gscan:",bins_Gscan)
 	#mode 2: use outputs from many histograms and many numG to create 2D histogram
 	else: 	
 		#generate 2D histograms for many numG 
